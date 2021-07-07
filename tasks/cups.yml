@@ -1,0 +1,16 @@
+---
+# tasks file for ./roles/security
+# set/check CUPS, like described in "CIS Ubuntu Linux Benchmark => 2.2.4"
+
+- name: check cups service exist
+  stat:
+    path: /etc/init.d/cups
+  register: cups_service
+
+- name: stop and disable cups service
+  become: yes
+  systemd:
+    name: cups
+    state: stopped
+    enabled: no
+  when: cups_service.stat.exists

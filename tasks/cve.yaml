@@ -1,0 +1,9 @@
+---
+# tasks file for ./roles/security
+
+- name: CVE-2016-5696 | Limit TCP challenge ACK limit
+  become: yes
+  sysctl:
+    name: net.ipv4.tcp_challenge_ack_limit
+    value: 999999999
+    sysctl_set: yes

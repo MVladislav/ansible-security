@@ -1,0 +1,19 @@
+---
+# tasks file for ./roles/security
+# Ensure sudo log file exists, like described in "CIS Ubuntu Linux Benchmark => 1.3.3"
+
+- name: Ensure sudo log file exists
+  become: yes
+  shell: 'grep -Ei "^\s*Defaults\s+logfile=\S+" /etc/sudoers /etc/sudoers.d/*'
+  changed_when: sudoLogTest.rc == 1
+  failed_when: "sudoLogTest.rc == 2"
+  ignore_errors: yes
+  register: sudoLogTest
+  # check_mode: no
+
+- name: "add logging line for sudo into /etc/sudoers"
+  become: yes
+  lineinfile:
+    dest: /etc/sudoers
+    line: Defaults logfile="/var/log/sudo.log"
+  when: sudoLogTest.changed

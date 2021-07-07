@@ -1,0 +1,41 @@
+---
+# tasks file for ./roles/security
+
+- name: Deactivate tracker-miner-fs step 1
+  become: yes
+  shell: 'for f in /etc/xdg/autostart/tracker*.desktop; do grep -q -F "Hidden=true" "$f" || echo "Hidden=true" | sudo tee --append "$f"; done'
+  changed_when: ip_test.rc is defined and ip_test.rc == 1
+  failed_when: ip_test.rc is not defined or ip_test.rc == 2
+  ignore_errors: yes
+  register: test1
+
+# ------------------------------------------------------------------------------
+
+- name: Deactivate tracker-miner-fs step 2
+  become: yes
+  shell: 'dbus-launch gsettings set org.freedesktop.Tracker.Miner.Files crawling-interval -2'
+  changed_when: ip_test.rc is defined and ip_test.rc == 0
+  failed_when: ip_test.rc is not defined or ip_test.rc == 2
+  ignore_errors: yes
+  register: test2
+
+# ------------------------------------------------------------------------------
+
+- name: Deactivate tracker-miner-fs step 3
+  become: yes
+  shell: 'dbus-launch gsettings set org.freedesktop.Tracker.Miner.Files enable-monitors false'
+  changed_when: ip_test.rc is defined and ip_test.rc == 0
+  failed_when: ip_test.rc is not defined or ip_test.rc == 2
+  ignore_errors: yes
+  register: test3
+
+# ------------------------------------------------------------------------------
+
+- name: Deactivate tracker-miner-fs step finishing
+  become: yes
+  expect:
+    command: 'tracker reset --hard'
+    responses:
+      (.*)Are you sure you want to proceed(.*): "y"
+  ignore_errors: yes
+  when: test1.changed or test2.changed or test3.changed
