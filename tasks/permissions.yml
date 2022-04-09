@@ -3,7 +3,7 @@
 # set default secure permission, like described in "CIS Ubuntu Linux Benchmark => 6.1.*"
 
 - name: set permission on multiple files for secure
-  become: yes
+  become: true
   file:
     path: "{{ item.file }}"
     owner: "{{ item.owner }}"
@@ -13,29 +13,29 @@
     - file: /etc/passwd
       owner: root
       group: root
-      mode: '0644'
+      mode: "0644"
     - file: /etc/gshadow
       owner: root
       group: root
-      mode: '0640'
+      mode: "0640"
     - file: /etc/shadow
       owner: root
       group: shadow
-      mode: '0640'
+      mode: "0640"
     - file: /etc/group
       owner: root
       group: root
-      mode: '0644'
+      mode: "0644"
 
     - file: /etc/passwd-
       owner: root
       group: root
-      mode: '0600'
+      mode: "0600"
     - file: /etc/shadow-
       owner: root
       group: shadow
-      mode: '0600'
+      mode: "0600"
     - file: /etc/group-
       owner: root
       group: root
-      mode: '0644'
+      mode: "0644"

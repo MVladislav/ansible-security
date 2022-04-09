@@ -8,7 +8,7 @@
   register: cups_service
 
 - name: stop and disable cups service
-  become: yes
+  become: true
   systemd:
     name: cups
     state: stopped

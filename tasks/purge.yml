@@ -3,7 +3,7 @@
 # Purge some packages, like described in "CIS Ubuntu Linux Benchmark => 2.3.*"
 
 - name: Ensure telnet client is not installed (PURGE)
-  become: yes
+  become: true
   apt:
     name: telnet
     purge: yes

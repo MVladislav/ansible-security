@@ -1,9 +1,8 @@
 ---
 # tasks file for ./roles/security
 
-
 - name: check if IPv6 is deactivated
-  become: yes
+  become: true
   shell: 'grep -q -F "net.ipv6.conf.all.disable_ipv6 = 1" /etc/sysctl.conf'
   changed_when: ip_test.rc == 1
   failed_when: ip_test.rc == 2
@@ -11,10 +10,9 @@
   register: ip_test
 
 - name: Deactivate IPv6
-  become: yes
+  become: true
   shell: 'echo "net.ipv6.conf.all.disable_ipv6 = 1" | sudo tee --append /etc/sysctl.conf'
   ignore_errors: yes
   when: ip_test.changed
-
 #- debug:
 #    msg: System {{ ip_test }}
