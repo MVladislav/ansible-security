@@ -55,7 +55,7 @@
 - name: Start and enable auditd
   ansible.builtin.service:
     name: auditd
-    state: started
+    state: restarted
     enabled: true
   tags:
     - security
