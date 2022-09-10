@@ -3,9 +3,8 @@
 
 # ------------------------------------------------------------------------------
 - name: Install apt auditd
-  become: true
   ansible.builtin.apt:
-    pkg: "{{ item.name }}"
+    pkg: "{{ item }}"
     state: present
     force_apt_get: true # apt-get instead of aptitude
   loop: "{{ security_auditd_dependencies | flatten(levels=1) }}"
