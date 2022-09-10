@@ -1,11 +1,6 @@
 # Role Name
 
-**security**, currently is hardening 4 defined definition from **_CIS Ubuntu Linux Benchmark_**
-
-- 2.2.4 Ensure CUPS is not enabled ✓
-- 6.1.2 Ensure permissions on /etc/passwd are configured ✓
-- 1.3.3 Ensure sudo log file exists ✓
-- 2.3.4 Ensure telnet client is not installed ✓
+**security**
 
 ## Requirements
 
