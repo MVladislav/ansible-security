@@ -1,0 +1,43 @@
+{{ ansible_managed | comment }}
+#
+# This file controls the configuration of the audit daemon
+#
+
+local_events = {{ security_auditd_local_events }}
+write_logs = {{ security_auditd_write_logs }}
+log_file = {{ security_auditd_log_file }}
+log_group = {{ security_auditd_log_group }}
+log_format = {{ security_auditd_log_format }}
+flush = {{ security_auditd_flush }}
+freq = {{ security_auditd_freq }}
+max_log_file = {{ security_auditd_max_log_file }}
+num_logs = {{ security_auditd_num_logs }}
+priority_boost = {{ security_auditd_priority_boost }}
+disp_qos = {{ security_auditd_disp_qos }}
+dispatcher = {{ security_auditd_dispatcher }}
+name_format = {{ security_auditd_name_format }}
+max_log_file_action = {{ security_auditd_max_log_file_action }}
+space_left = {{ security_auditd_space_left }}
+space_left_action = {{ security_auditd_space_left_action }}
+verify_email = {{ security_auditd_verify_email }}
+action_mail_acct = {{ security_auditd_action_mail_acct }}
+admin_space_left = {{ security_auditd_admin_space_left }}
+admin_space_left_action = {{ security_auditd_admin_space_left_action }}
+disk_full_action = {{ security_auditd_disk_full_action }}
+disk_error_action = {{ security_auditd_disk_error_action }}
+use_libwrap = {{ security_auditd_use_libwrap }}
+##tcp_listen_port = 60
+tcp_listen_queue = {{ security_auditd_tcp_listen_queue }}
+tcp_max_per_addr = {{ security_auditd_tcp_max_per_addr }}
+##tcp_client_ports = 1024-65535
+tcp_client_max_idle = {{ security_auditd_tcp_client_max_idle }}
+transport = {{ security_auditd_transport }}
+enable_krb5 = {{ security_auditd_enable_krb5 }}
+krb5_principal = {{ security_auditd_krb5_principal }}
+##krb5_key_file = /etc/audit/audit.key
+distribute_network = {{ security_auditd_distribute_network }}
+q_depth = {{ security_auditd_q_depth }}
+overflow_action = {{ security_auditd_overflow_action }}
+max_restarts = {{ security_auditd_max_restarts }}
+plugin_dir = {{ security_auditd_plugin_dir }}
+end_of_event_timeout = {{ security_auditd_end_of_event_timeout }}

@@ -1,0 +1,63 @@
+---
+# tasks file for ./roles/security
+
+# ------------------------------------------------------------------------------
+- name: Install apt auditd
+  become: true
+  ansible.builtin.apt:
+    pkg: "{{ item.name }}"
+    state: present
+    force_apt_get: true # apt-get instead of aptitude
+  loop: "{{ security_auditd_dependencies | flatten(levels=1) }}"
+  when: security_auditd_dependencies is defined
+  tags:
+    - security
+    - auditd
+
+# ------------------------------------------------------------------------------
+- name: Config auditd conf
+  ansible.builtin.template:
+    src: auditd.conf.j2
+    dest: "{{ security_auditd_config_directory }}/{{ security_auditd_config_file }}"
+    mode: "0640"
+  tags:
+    - security
+    - auditd
+
+# ------------------------------------------------------------------------------
+- name: Create rules.d directory
+  ansible.builtin.file:
+    path: "{{ security_auditd_config_directory }}/rules.d"
+    state: directory
+    mode: "0750"
+  tags:
+    - security
+    - auditd
+
+- name: Config main rule (audit.rules)
+  ansible.builtin.template:
+    src: audit.rules.j2
+    dest: "{{ auditd_config_directory }}/rules.d/audit.rules"
+    mode: "0600"
+  tags:
+    - security
+    - auditd
+
+# - name: Config custom rules (...)
+#   ansible.builtin.template:
+#     src: ....j2
+#     dest: "{{ auditd_config_directory }}/rules.d/..."
+#     mode: "0600"
+#   tags:
+#     - security
+#     - auditd
+
+# ------------------------------------------------------------------------------
+- name: Start and enable auditd
+  ansible.builtin.service:
+    name: auditd
+    state: started
+    enabled: true
+  tags:
+    - security
+    - auditd

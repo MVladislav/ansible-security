@@ -1,2 +1,49 @@
 ---
 # defaults file for ./roles/security
+
+security_setup_services:
+  - auditd: true
+
+# AUDITD
+# ------------------------------------------------------------------------------
+security_auditd_dependencies:
+  - auditd
+  - audispd-plugins
+security_auditd_config_directory: /etc/audit
+security_auditd_config_file: auditd.conf
+
+security_auditd_local_events: "yes"
+security_auditd_write_logs: "yes"
+security_auditd_log_file: /var/log/audit/audit.log
+security_auditd_log_group: adm # adm | root
+security_auditd_log_format: ENRICHED # ENRICHED | RAW
+security_auditd_flush: INCREMENTAL_ASYNC
+security_auditd_freq: 50
+security_auditd_max_log_file: 10
+security_auditd_num_logs: 5
+security_auditd_priority_boost: 4
+security_auditd_disp_qos: lossy
+security_auditd_dispatcher: /sbin/audispd
+security_auditd_name_format: NONE
+security_auditd_max_log_file_action: keep_logs # keep_logs | rotate
+security_auditd_space_left: 75
+security_auditd_space_left_action: syslog # email | syslog
+security_auditd_verify_email: "yes"
+security_auditd_action_mail_acct: root
+security_auditd_admin_space_left: 50
+security_auditd_admin_space_left_action: halt # halt | suspend
+security_auditd_disk_full_action: SUSPEND
+security_auditd_disk_error_action: SUSPEND
+security_auditd_use_libwrap: "yes"
+security_auditd_tcp_listen_queue: 5
+security_auditd_tcp_max_per_addr: 1
+security_auditd_transport: TCP
+security_auditd_tcp_client_max_idle: 0
+security_auditd_enable_krb5: "no"
+security_auditd_krb5_principal: auditd
+security_auditd_distribute_network: "no"
+security_auditd_q_depth: 1200
+security_auditd_overflow_action: SYSLOG
+security_auditd_max_restarts: 10
+security_auditd_plugin_dir: "{{ security_auditd_config_directory }}/plugins.d"
+security_auditd_end_of_event_timeout: 2
