@@ -1,26 +1,9 @@
 ---
 # tasks file for ./roles/security
 
-# SUDO
-- name: secure sudo
-  include: sudo.yml
-
-# CUPS
-- name: secure cups
-  include: cups.yml
-
-# PASSWD
-- name: secure permissions
-  include: permissions.yml
-
-# PURGE
-- name: secure purge
-  include: purge.yml
-
-# Deactivate IPv6
-- name: deactivate IPv6
-  include: ipv6.yml
-
-# Deactivate tracker-miner-fs
-- name: deactivate tracker-miner-fs
-  include: tracker_miner_fs.yml
+# AUDITD
+- name: auditd
+  become: true
+  include: auditd.yml
+  when: (security_setup_services is defined)
+    and (security_setup_services.auditd is defined and security_setup_services.auditd | bool)
