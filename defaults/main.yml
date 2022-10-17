@@ -14,7 +14,8 @@ security_auditd_config_file: auditd.conf
 
 security_auditd_local_events: "yes"
 security_auditd_write_logs: "yes"
-security_auditd_log_file: /var/log/audit/audit.log
+security_auditd_log_file_path: /var/log/audit
+security_auditd_log_file: "{{ security_auditd_log_file }}/audit.log"
 security_auditd_log_group: adm # adm | root
 security_auditd_log_format: ENRICHED # ENRICHED | RAW
 security_auditd_flush: INCREMENTAL_ASYNC
@@ -25,7 +26,7 @@ security_auditd_priority_boost: 4
 security_auditd_disp_qos: lossy
 security_auditd_dispatcher: /sbin/audispd
 security_auditd_name_format: NONE
-security_auditd_max_log_file_action: keep_logs # keep_logs | rotate
+security_auditd_max_log_file_action: ignore # ignore | keep_logs | rotate
 security_auditd_space_left: 75
 security_auditd_space_left_action: syslog # email | syslog
 security_auditd_verify_email: "yes"

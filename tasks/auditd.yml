@@ -52,6 +52,17 @@
 #     - auditd
 
 # ------------------------------------------------------------------------------
+
+- name: Config cron rule (audit.cron)
+  ansible.builtin.template:
+    src: auditd.cron.j2
+    dest: "/etc/cron.daily/auditd.cron"
+    mode: "0744"
+  tags:
+    - security
+    - auditd
+
+# ------------------------------------------------------------------------------
 - name: Start and enable auditd
   ansible.builtin.service:
     name: auditd
