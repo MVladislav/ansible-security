@@ -15,7 +15,7 @@ security_auditd_config_file: auditd.conf
 security_auditd_local_events: "yes"
 security_auditd_write_logs: "yes"
 security_auditd_log_file_path: /var/log/audit
-security_auditd_log_file: "{{ security_auditd_log_file }}/audit.log"
+security_auditd_log_file: "{{ security_auditd_log_file_path }}/audit.log"
 security_auditd_log_group: adm # adm | root
 security_auditd_log_format: ENRICHED # ENRICHED | RAW
 security_auditd_flush: INCREMENTAL_ASYNC
