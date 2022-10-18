@@ -16,8 +16,8 @@ rename_and_compress_old_logs() {
 }
 
 delete_old_compressed_logs() {
-  find "{{ security_auditd_log_file_path }}/" -type f -regextype posix-extended -regex '.*audit\.log\..*(xz|gz|bz2)$' | sort -n | head -n -${KEEP} | xargs -d '\n' rm -v --
-  find "{{ security_auditd_log_file_path }}/" -type f -regextype posix-extended -regex '.*audit\.log\.[0-9][0-9]*$' | sort -n | head -n -${KEEP} | xargs -d '\n' rm -v --
+  find "{{ security_auditd_log_file_path }}/" -type f -regextype posix-extended -regex '.*audit\.log\..*(xz|gz|bz2)$' | sort -n | head -n ${KEEP} | xargs -d '\n' rm -v --
+  find "{{ security_auditd_log_file_path }}/" -type f -regextype posix-extended -regex '.*audit\.log\.[0-9][0-9]*$' | sort -n | head -n ${KEEP} | xargs -d '\n' rm -v --
 }
 
 rename_and_compress_old_logs
