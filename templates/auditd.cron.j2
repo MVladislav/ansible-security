@@ -11,7 +11,7 @@ rename_and_compress_old_logs() {
     timestamp=$(find "${file}" -printf "${FORMAT}\n")
     new_file=${file%.[0-9]}.${timestamp}
     mv -v "${file}" "${new_file}"
-    ${COMPRESS} -v "${new_file}"
+    ${COMPRESS} -vf "${new_file}"
   done
 }
 
