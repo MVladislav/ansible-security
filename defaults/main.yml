@@ -23,8 +23,6 @@ security_auditd_freq: 50
 security_auditd_max_log_file: 10
 security_auditd_num_logs: 5
 security_auditd_priority_boost: 4
-security_auditd_disp_qos: lossy
-security_auditd_dispatcher: /sbin/audispd
 security_auditd_name_format: NONE
 security_auditd_max_log_file_action: ignore # ignore | keep_logs | rotate
 security_auditd_space_left: 75
@@ -48,3 +46,7 @@ security_auditd_overflow_action: SYSLOG
 security_auditd_max_restarts: 10
 security_auditd_plugin_dir: "{{ security_auditd_config_directory }}/plugins.d"
 security_auditd_end_of_event_timeout: 2
+
+# deprecated
+security_auditd_disp_qos: lossy
+security_auditd_dispatcher: /sbin/audispd
