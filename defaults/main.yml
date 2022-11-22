@@ -57,7 +57,9 @@ security_auditd_dispatcher: /sbin/audispd
 # FAIL2BAN
 # ------------------------------------------------------------------------------
 # template jail.local.j2
-jail_bantime: 3600
-jail_banaction: iptables-multiport
-jail_enabled: true
-jail_maxretry: 3
+security_jail_bantime: 3600
+security_jail_banaction: iptables-multiport
+security_jail_enabled: true
+security_jail_maxretry: 3
+
+security_fail2ban_proxmox: false

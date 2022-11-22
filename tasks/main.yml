@@ -7,9 +7,16 @@
   include_tasks: auditd.yml
   when: (security_setup_services is defined)
     and (security_setup_services.auditd is defined and security_setup_services.auditd | bool)
+  tags:
+    - security
+    - auditd
 
 # FAIL2BAN
 - name: fail2ban
+  become: true
   include_tasks: fail2ban.yml
   when: (security_setup_services is defined)
     and (security_setup_services.fail2ban is defined and security_setup_services.fail2ban | bool)
+  tags:
+    - security
+    - fail2ban
