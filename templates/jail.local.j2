@@ -1,0 +1,10 @@
+[DEFAULT]
+# Ban hosts for one hour:
+bantime = {{ jail_bantime }}
+
+# Override /etc/fail2ban/jail.d/00-firewalld.conf:
+banaction = {{ jail_banaction }}
+
+[sshd]
+enabled = {{ jail_enabled }}
+maxretry = {{ jail_maxretry }}

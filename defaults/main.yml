@@ -3,7 +3,9 @@
 
 security_setup_services:
   - auditd: true
+  - fail2ban: true
 
+# ------------------------------------------------------------------------------
 # AUDITD
 # ------------------------------------------------------------------------------
 security_auditd_dependencies:
@@ -50,3 +52,12 @@ security_auditd_end_of_event_timeout: 2
 # deprecated
 security_auditd_disp_qos: lossy
 security_auditd_dispatcher: /sbin/audispd
+
+# ------------------------------------------------------------------------------
+# FAIL2BAN
+# ------------------------------------------------------------------------------
+# template jail.local.j2
+jail_bantime: 3600
+jail_banaction: iptables-multiport
+jail_enabled: true
+jail_maxretry: 3

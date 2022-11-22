@@ -21,7 +21,10 @@ Including an example of how to use your role (for instance, with variables passe
 ```yml
 - hosts: servers
   roles:
-    - security
+    - role: security
+      security_setup_services:
+        - auditd: true
+        - fail2ban: true
 ```
 
 ## License
