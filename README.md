@@ -21,7 +21,16 @@ Including an example of how to use your role (for instance, with variables passe
 ```yml
 - hosts: servers
   roles:
-    - security
+    - role: security
+      security_setup_services:
+        - auditd: true
+        - fail2ban: true
+
+      security_jail_bantime: 3600
+      security_jail_banaction: iptables-multiport
+      security_jail_enabled: true
+      security_jail_maxretry: 3
+      security_fail2ban_proxmox: false
 ```
 
 ## License

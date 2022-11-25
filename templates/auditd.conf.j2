@@ -13,8 +13,6 @@ freq = {{ security_auditd_freq }}
 max_log_file = {{ security_auditd_max_log_file }}
 num_logs = {{ security_auditd_num_logs }}
 priority_boost = {{ security_auditd_priority_boost }}
-disp_qos = {{ security_auditd_disp_qos }}
-dispatcher = {{ security_auditd_dispatcher }}
 name_format = {{ security_auditd_name_format }}
 max_log_file_action = {{ security_auditd_max_log_file_action }}
 space_left = {{ security_auditd_space_left }}
@@ -41,3 +39,7 @@ overflow_action = {{ security_auditd_overflow_action }}
 max_restarts = {{ security_auditd_max_restarts }}
 plugin_dir = {{ security_auditd_plugin_dir }}
 end_of_event_timeout = {{ security_auditd_end_of_event_timeout }}
+
+# deprecated
+#disp_qos = {{ security_auditd_disp_qos }}
+#dispatcher = {{ security_auditd_dispatcher }}

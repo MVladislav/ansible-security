@@ -1,0 +1,22 @@
+[DEFAULT]
+# Ban hosts for one hour:
+bantime = {{ security_jail_bantime }}
+
+# Override /etc/fail2ban/jail.d/00-firewalld.conf:
+banaction = {{ security_jail_banaction }}
+
+[sshd]
+enabled = {{ security_jail_enabled }}
+maxretry = {{ security_jail_maxretry }}
+
+{% if security_fail2ban_proxmox == true %}
+##### PROXMOX2: START######
+[proxmox2]
+enabled = true
+port    = https,http,8006
+filter  = proxmox2
+logpath  = /var/log/daemon.log
+maxretry = 7
+bantime  = 43200 #12hours
+##### PROXMOX2: END######
+{% endif %}

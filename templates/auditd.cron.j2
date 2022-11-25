@@ -1,0 +1,27 @@
+#!/bin/bash
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin
+
+FORMAT="%TY-%Tm-%Td_%TH:%TM:%.2TS" # Customize timestamp format as desired, per `man date`
+COMPRESS=gzip                      # Change to bzip2 or xz as desired
+KEEP=30                            # Number of compressed log files to keep
+ROTATE_TIME=5                      # Amount of time in seconds to wait for auditd to rotate its logs. Adjust this as necessary
+
+rename_and_compress_old_logs() {
+  for file in $(find {{ security_auditd_log_file_path }}/ -name 'audit.log.[0-9]'); do
+    timestamp=$(find "${file}" -printf "${FORMAT}\n")
+    new_file=${file%.[0-9]}.${timestamp}
+    mv -v "${file}" "${new_file}"
+    ${COMPRESS} -vf "${new_file}"
+  done
+}
+
+delete_old_compressed_logs() {
+  find "{{ security_auditd_log_file_path }}/" -type f -regextype posix-extended -regex '.*audit\.log\..*(xz|gz|bz2)$' | sort -n | head -n -${KEEP} | xargs -d '\n' rm -v --
+  find "{{ security_auditd_log_file_path }}/" -type f -regextype posix-extended -regex '.*audit\.log\.[0-9][0-9]+$' | sort -n | head -n -${KEEP} | xargs -d '\n' rm -v --
+}
+
+rename_and_compress_old_logs
+service auditd rotate
+sleep $ROTATE_TIME
+rename_and_compress_old_logs
+delete_old_compressed_logs

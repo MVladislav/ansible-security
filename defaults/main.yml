@@ -3,7 +3,9 @@
 
 security_setup_services:
   - auditd: true
+  - fail2ban: true
 
+# ------------------------------------------------------------------------------
 # AUDITD
 # ------------------------------------------------------------------------------
 security_auditd_dependencies:
@@ -14,7 +16,8 @@ security_auditd_config_file: auditd.conf
 
 security_auditd_local_events: "yes"
 security_auditd_write_logs: "yes"
-security_auditd_log_file: /var/log/audit/audit.log
+security_auditd_log_file_path: /var/log/audit
+security_auditd_log_file: "{{ security_auditd_log_file_path }}/audit.log"
 security_auditd_log_group: adm # adm | root
 security_auditd_log_format: ENRICHED # ENRICHED | RAW
 security_auditd_flush: INCREMENTAL_ASYNC
@@ -22,10 +25,8 @@ security_auditd_freq: 50
 security_auditd_max_log_file: 10
 security_auditd_num_logs: 5
 security_auditd_priority_boost: 4
-security_auditd_disp_qos: lossy
-security_auditd_dispatcher: /sbin/audispd
 security_auditd_name_format: NONE
-security_auditd_max_log_file_action: keep_logs # keep_logs | rotate
+security_auditd_max_log_file_action: ignore # ignore | keep_logs | rotate
 security_auditd_space_left: 75
 security_auditd_space_left_action: syslog # email | syslog
 security_auditd_verify_email: "yes"
@@ -47,3 +48,18 @@ security_auditd_overflow_action: SYSLOG
 security_auditd_max_restarts: 10
 security_auditd_plugin_dir: "{{ security_auditd_config_directory }}/plugins.d"
 security_auditd_end_of_event_timeout: 2
+
+# deprecated
+security_auditd_disp_qos: lossy
+security_auditd_dispatcher: /sbin/audispd
+
+# ------------------------------------------------------------------------------
+# FAIL2BAN
+# ------------------------------------------------------------------------------
+# template jail.local.j2
+security_jail_bantime: 3600
+security_jail_banaction: iptables-multiport
+security_jail_enabled: true
+security_jail_maxretry: 3
+
+security_fail2ban_proxmox: false
