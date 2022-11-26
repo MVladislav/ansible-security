@@ -1,13 +1,20 @@
 #!/bin/bash
+set -euo pipefail
+IFS=$'\n\t'
+
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin
+
+logger -t auditd "AUDITD | run cleanup auditd logs ..."
 
 FORMAT="%TY-%Tm-%Td_%TH:%TM:%.2TS" # Customize timestamp format as desired, per `man date`
 COMPRESS=gzip                      # Change to bzip2 or xz as desired
 KEEP=30                            # Number of compressed log files to keep
 ROTATE_TIME=5                      # Amount of time in seconds to wait for auditd to rotate its logs. Adjust this as necessary
+AUDITD_BASE_LOG_PATH="{{ security_auditd_log_file_path }}/"
 
 rename_and_compress_old_logs() {
-  for file in $(find {{ security_auditd_log_file_path }}/ -name 'audit.log.[0-9]'); do
+  for file in $(find "${AUDITD_BASE_LOG_PATH}" -name 'audit.log.[0-9]'); do
+    logger -t auditd "AUDITD | compressing file ${file}"
     timestamp=$(find "${file}" -printf "${FORMAT}\n")
     new_file=${file%.[0-9]}.${timestamp}
     mv -v "${file}" "${new_file}"
@@ -16,8 +23,11 @@ rename_and_compress_old_logs() {
 }
 
 delete_old_compressed_logs() {
-  find "{{ security_auditd_log_file_path }}/" -type f -regextype posix-extended -regex '.*audit\.log\..*(xz|gz|bz2)$' | sort -n | head -n -${KEEP} | xargs -d '\n' rm -v --
-  find "{{ security_auditd_log_file_path }}/" -type f -regextype posix-extended -regex '.*audit\.log\.[0-9][0-9]+$' | sort -n | head -n -${KEEP} | xargs -d '\n' rm -v --
+  logger -t auditd "AUDITD | remove compressed logs to keep only ${KEEP} ..."
+  C_REMOVED_COMPRESSED=$(find "${AUDITD_BASE_LOG_PATH}" -type f -regextype posix-extended -regex '.*audit\.log\..*(xz|gz|bz2)$' | sort -n | head -n -${KEEP} | xargs -d '\n' -I {} rm -v {} | wc -l)
+  logger -t auditd "AUDITD | ... ${C_REMOVED_COMPRESSED} compressed files removed"
+  # logger -t auditd "AUDITD | remove plain logs to keep only first 10"
+  # find "${AUDITD_BASE_LOG_PATH}" -type f -regextype posix-extended -regex '.*audit\.log\.[0-9][0-9]+$' | xargs -d '\n' -I {} rm -v {}
 }
 
 rename_and_compress_old_logs
@@ -25,3 +35,7 @@ service auditd rotate
 sleep $ROTATE_TIME
 rename_and_compress_old_logs
 delete_old_compressed_logs
+
+logger -t auditd "AUDITD | ... finished cleanup auditd logs"
+
+exit 0
