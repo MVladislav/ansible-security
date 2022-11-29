@@ -1,0 +1,26 @@
+{{ ansible_managed | comment }}
+
+createUser {{ security_snmp.snmp_user }} SHA {{ security_snmp.snmp_password }} AES {{ security_snmp.snmp_encryption }}
+
+rouser {{ security_snmp.snmp_user }} priv
+{% if security_snmp.snmp_agent_address_address.ipv4 is defined and security_snmp.snmp_agent_address_address.ipv4 is not empty %}
+agentAddress  {{ security_snmp.snmp_agent_address_protocol.ipv4 }}:{{ security_snmp.snmp_agent_address_address.ipv4 }}:{{ security_snmp.snmp_agent_address_port.ipv4 }}
+{% endif %}
+{% if security_snmp.snmp_agent_address_address.ipv6 is defined and security_snmp.snmp_agent_address_address.ipv6 is not empty %}
+agentAddress {{ security_snmp.snmp_agent_address_protocol.ipv6 }}:{{ security_snmp.snmp_agent_address_address.ipv6 }}:{{ security_snmp.snmp_agent_address_port.ipv6 }}
+{% endif %}
+
+{% if security_snmp.snmp_location is defined and security_snmp.snmp_location is not empty %}
+sysLocation {{ security_snmp.snmp_location }}
+{% endif %}
+sysName {{ ansible_fqdn }}
+{% if security_snmp.snmp_contact is defined and security_snmp.snmp_contact is not empty %}
+sysContact {{ security_snmp.snmp_contact }}
+{% endif %}
+
+{% for item in security_snmp.snmp_extension_list %}
+extend {{ item.extend }}
+{% endfor %}
+{% if "pve" in ansible_kernel %}
+extend {{ security_snmp.snmp_extension_proxmox.extend }}
+{% endif %}

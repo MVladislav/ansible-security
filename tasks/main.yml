@@ -5,8 +5,10 @@
 - name: auditd
   become: true
   import_tasks: auditd.yml
-  when: (security_setup_services is defined)
-    and (security_setup_services.auditd is defined and security_setup_services.auditd | bool)
+  when:
+    - security_setup_services is defined
+    - security_setup_services.auditd is defined
+    - security_setup_services.auditd | bool
   tags:
     - security
     - auditd
@@ -15,8 +17,20 @@
 - name: fail2ban
   become: true
   import_tasks: fail2ban.yml
-  when: (security_setup_services is defined)
-    and (security_setup_services.fail2ban is defined and security_setup_services.fail2ban | bool)
+  when:
+    - security_setup_services is defined
+    - security_setup_services.fail2ban is defined
+    - security_setup_services.fail2ban | bool
   tags:
     - security
     - fail2ban
+
+# SNMP
+- name: snmp
+  import_tasks: install_snmp.yml
+  when:
+    - security_snmp_install is defined
+    - security_snmp_install | bool
+  tags:
+    - security
+    - snmp
