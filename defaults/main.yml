@@ -102,8 +102,10 @@ security_snmp:
     ipv4: udp
     ipv6: udp6
   snmp_agent_address_address:
-    ipv4: "{{ ansible_default_ipv4.address if ansible_default_ipv4.address is defined else security_snmp_address_ipv4 }}"
-    ipv6: "{{ ansible_default_ipv6.address if ansible_default_ipv6.address is defined else security_snmp_address_ipv6 }}"
+    # ipv4: "{{ ansible_default_ipv4.address if ansible_default_ipv4.address is defined else security_snmp_address_ipv4 }}"
+    # ipv6: "{{ ansible_default_ipv6.address if ansible_default_ipv6.address is defined else security_snmp_address_ipv6 }}"
+    ipv4: "{{ security_snmp_address_ipv4 if security_snmp_address_ipv4 is defined else ansible_default_ipv4.address }}"
+    ipv6: "{{ security_snmp_address_ipv6 if security_snmp_address_ipv6 is defined else ansible_default_ipv6.address }}"
   snmp_agent_address_port:
     ipv4: "{{ security_snmp_port_ipv4 | default(161) }}"
     ipv6: "{{ security_snmp_port_ipv6 | default(161) }}"
