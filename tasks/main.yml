@@ -29,8 +29,9 @@
 - name: snmp
   import_tasks: snmp.yml
   when:
-    - security_snmp_install is defined
-    - security_snmp_install | bool
+    - security_setup_services is defined
+    - security_setup_services.snmp is defined
+    - security_setup_services.snmp | bool
   tags:
     - security
     - snmp

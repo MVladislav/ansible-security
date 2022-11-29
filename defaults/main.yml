@@ -2,8 +2,9 @@
 # defaults file for ./roles/security
 
 security_setup_services:
-  - auditd: true
-  - fail2ban: true
+  auditd: true
+  fail2ban: true
+  snmp: false
 
 # ------------------------------------------------------------------------------
 # AUDITD
@@ -67,8 +68,6 @@ security_fail2ban_proxmox: false
 # ------------------------------------------------------------------------------
 # FAIL2BAN
 # ------------------------------------------------------------------------------
-security_snmp_install: false
-
 security_snmp_user: snmp
 security_snmp_password: snmp_password
 security_snmp_encryption: snmp_encryption
