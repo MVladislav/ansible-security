@@ -78,6 +78,7 @@ security_snmp_address_ipv4: "127.0.0.1"
 security_snmp_address_ipv6: "::1"
 security_snmp_port_ipv4: 161
 security_snmp_port_ipv6: 161
+security_snmp_extension_scripts: "/usr/local/lib/snmpd"
 security_snmp:
   snmp_user: "{{ security_snmp_user }}"
   snmp_password: "{{ security_snmp_password }}"
@@ -88,7 +89,6 @@ security_snmp:
 
   snmp_additional_packages: []
 
-  snmp_extension_scripts: "/usr/local/lib/snmpd"
   snmp_packages:
     - snmp
     - snmpd
@@ -110,9 +110,9 @@ security_snmp:
 
   snmp_extension_list:
     - url: "https://raw.githubusercontent.com/librenms/librenms-agent/master/snmp/distro"
-      extend: ".1.3.6.1.4.1.2021.7890.1 distro {{ snmp_extension_scripts }}/distro"
+      extend: ".1.3.6.1.4.1.2021.7890.1 distro {{ security_snmp_extension_scripts }}/distro"
     - url: "https://raw.githubusercontent.com/librenms/librenms-agent/master/snmp/osupdate"
-      extend: "osupdate {{ snmp_extension_scripts }}/osupdate"
+      extend: "osupdate {{ security_snmp_extension_scripts }}/osupdate"
   snmp_extension_proxmox:
     url: "https://raw.githubusercontent.com/librenms/librenms-agent/master/agent-local/proxmox"
-    extend: "proxmox /usr/bin/sudo {{ snmp_extension_scripts }}/proxmox"
+    extend: "proxmox /usr/bin/sudo {{ security_snmp_extension_scripts }}/proxmox"

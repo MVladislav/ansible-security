@@ -5,7 +5,7 @@
 - name: "SNMP | install dependencies"
   become: true
   ansible.builtin.apt:
-    pkg: "{{ item.apt }}"
+    pkg: "{{ item }}"
     state: present
     force_apt_get: true # apt-get instead of aptitude
   with_items:
@@ -19,7 +19,7 @@
 - name: "SNMP | create snmp extension directory"
   become: true
   ansible.builtin.file:
-    path: "{{ security_snmp.snmp_extension_scripts }}"
+    path: "{{ security_snmp_extension_scripts }}"
     state: directory
     owner: root
     group: root
@@ -37,7 +37,7 @@
   become: true
   ansible.builtin.get_url:
     url: "{{ item.url }}"
-    dest: '{{ security_snmp.snmp_extension_scripts + "/" }}'
+    dest: '{{ security_snmp_extension_scripts + "/" }}'
     owner: root
     group: root
     mode: 0755
@@ -56,7 +56,7 @@
   become: true
   ansible.builtin.get_url:
     url: "{{ security_snmp.snmp_extension_proxmox.url }}"
-    dest: '{{ security_snmp.snmp_extension_scripts + "/" }}'
+    dest: '{{ security_snmp_extension_scripts + "/" }}'
     owner: root
     group: root
     mode: 0755
