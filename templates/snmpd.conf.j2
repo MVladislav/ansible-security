@@ -3,12 +3,22 @@
 createUser {{ security_snmp.snmp_user }} SHA {{ security_snmp.snmp_password }} AES {{ security_snmp.snmp_encryption }}
 
 rouser {{ security_snmp.snmp_user }} priv
-{% if security_snmp.snmp_agent_address_address.ipv4 is defined %}
-agentAddress  {{ security_snmp.snmp_agent_address_protocol.ipv4 }}:{{ security_snmp.snmp_agent_address_address.ipv4 }}:{{ security_snmp.snmp_agent_address_port.ipv4 }}
+{% if security_snmp.snmp_agent_address_protocol.ipv4 is defined and security_snmp.snmp_agent_address_port.ipv4 %}
+{% if security_snmp.snmp_agent_address_address.ipv4 is defined and security_snmp.snmp_agent_address_address.ipv4 | length > 0 %}
+agentAddress {{ security_snmp.snmp_agent_address_protocol.ipv4 }}:{{ security_snmp.snmp_agent_address_address.ipv4 }}:{{ security_snmp.snmp_agent_address_port.ipv4 }}
+{% else %}
+agentAddress {{ security_snmp.snmp_agent_address_protocol.ipv4 }}:{{ security_snmp.snmp_agent_address_port.ipv4 }}
 {% endif %}
-{% if security_snmp.snmp_agent_address_address.ipv6 is defined %}
+{% endif %}
+
+{% if security_snmp.snmp_agent_address_protocol.ipv6 is defined and security_snmp.snmp_agent_address_port.ipv6 %}
+{% if security_snmp.snmp_agent_address_address.ipv6 is defined and security_snmp.snmp_agent_address_address.ipv6 | length > 0 %}
 agentAddress {{ security_snmp.snmp_agent_address_protocol.ipv6 }}:{{ security_snmp.snmp_agent_address_address.ipv6 }}:{{ security_snmp.snmp_agent_address_port.ipv6 }}
+{% else %}
+agentAddress {{ security_snmp.snmp_agent_address_protocol.ipv6 }}:{{ security_snmp.snmp_agent_address_port.ipv6 }}
 {% endif %}
+{% endif %}
+
 
 {% if security_snmp.snmp_location is defined and security_snmp.snmp_location | length > 0 %}
 sysLocation {{ security_snmp.snmp_location }}
