@@ -27,7 +27,7 @@
 
 # SNMP
 - name: snmp
-  import_tasks: install_snmp.yml
+  import_tasks: snmp.yml
   when:
     - security_snmp_install is defined
     - security_snmp_install | bool
