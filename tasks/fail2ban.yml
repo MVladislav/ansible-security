@@ -37,3 +37,13 @@
   tags:
     - security
     - fail2ban
+
+# ------------------------------------------------------------------------------
+- name: FAIL2BAN | start and enable service
+  ansible.builtin.service:
+    name: fail2ban
+    state: restarted
+    enabled: true
+  tags:
+    - security
+    - fail2ban

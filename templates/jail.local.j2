@@ -1,22 +1,46 @@
 [DEFAULT]
-# Ban hosts for one hour:
+logtimezone=UTC+0800
+
+maxretry = {{ security_jail_maxretry }}
+
+findtime = 300
 bantime = {{ security_jail_bantime }}
 
 # Override /etc/fail2ban/jail.d/00-firewalld.conf:
 banaction = {{ security_jail_banaction }}
+action_ = %(banaction)...
+action_mw = %(banaction)...
+action_mwl = %(banaction)s...
+
+backend = auto
+usedns = warn
+chain = INPUT
+
+# destemail = root@localhost
+# sendername = Fail2Ban
+# mta = sendmail
+
+protocol = tcp
+protocol="%(protocol)s"...
+
+ignoreip = 127.0.0.1/8
 
 [sshd]
 enabled = {{ security_jail_enabled }}
 maxretry = {{ security_jail_maxretry }}
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+bantime = {{ security_jail_bantime }}
 
 {% if security_fail2ban_proxmox == true %}
 ##### PROXMOX2: START######
 [proxmox2]
 enabled = true
+maxretry = {{ security_jail_maxretry }}
 port    = https,http,8006
 filter  = proxmox2
 logpath  = /var/log/daemon.log
-maxretry = 7
-bantime  = 43200 #12hours
+bantime  = {{ security_jail_bantime }}
 ##### PROXMOX2: END######
 {% endif %}
