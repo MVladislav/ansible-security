@@ -56,8 +56,8 @@
 - name: AUDITD | config cron rule (audit.cron)
   ansible.builtin.template:
     src: auditd.cron.j2
-    dest: "/etc/cron.daily/auditd.cron"
-    mode: "0744"
+    dest: "/etc/cron.daily/auditd"
+    mode: "0755"
   tags:
     - security
     - auditd
