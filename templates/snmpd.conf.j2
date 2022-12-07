@@ -2,7 +2,7 @@
 
 createUser {{ security_snmp.snmp_user }} SHA {{ security_snmp.snmp_password }} AES {{ security_snmp.snmp_encryption }}
 
-rouser {{ security_snmp.snmp_user }} priv
+rouser {{ security_snmp.snmp_user }} authpriv
 {% if security_snmp.snmp_agent_address_protocol.ipv4 is defined and security_snmp.snmp_agent_address_protocol.ipv4 | length > 0
 and security_snmp.snmp_agent_address_port.ipv4 and security_snmp.snmp_agent_address_port.ipv4 | length > 0 %}
 {% if security_snmp.snmp_agent_address_address.ipv4 is defined and security_snmp.snmp_agent_address_address.ipv4 | length > 0 %}
@@ -20,6 +20,7 @@ agentAddress {{ security_snmp.snmp_agent_address_protocol.ipv6 }}:{{ security_sn
 agentAddress {{ security_snmp.snmp_agent_address_protocol.ipv6 }}:{{ security_snmp.snmp_agent_address_port.ipv6 }}
 {% endif %}
 {% endif %}
+master  agentx
 
 
 {% if security_snmp.snmp_location is defined and security_snmp.snmp_location | length > 0 %}
@@ -31,6 +32,9 @@ sysName {{ ansible_fqdn }}
 {% if security_snmp.snmp_contact is defined and security_snmp.snmp_contact | length > 0 %}
 sysContact {{ security_snmp.snmp_contact }}
 {% endif %}
+sysServices 72
+
+includeDir /etc/snmp/snmpd.conf.d
 
 {% if security_snmp.snmp_extension_list is defined %}
 {% for item in security_snmp.snmp_extension_list %}
@@ -40,3 +44,19 @@ extend {{ item.extend }}
 {% if "pve" in ansible_kernel %}
 extend {{ security_snmp.snmp_extension_proxmox.extend }}
 {% endif %}
+
+## Disk Monitoring
+includeAllDisks  10%
+
+# This lines allows Observium to detect hardware, vendor and serial
+# Common Linux:
+extend .1.3.6.1.4.1.2021.7890.2 hardware /bin/cat /sys/devices/virtual/dmi/id/product_name
+extend .1.3.6.1.4.1.2021.7890.3 vendor   /bin/cat /sys/devices/virtual/dmi/id/sys_vendor
+extend .1.3.6.1.4.1.2021.7890.4 serial   /bin/cat /sys/devices/virtual/dmi/id/product_serial
+
+## This line allows Observium to collect an accurate uptime
+extend uptime /bin/cat /proc/uptime
+
+## This line enables Observium's ifAlias description injection
+## apt install libsnmp-extension-passpersist-perl
+pass_persist .1.3.6.1.2.1.31.1.1.1.18 /usr/local/bin/ifAlias_persist
