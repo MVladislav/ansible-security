@@ -1,7 +1,7 @@
 ---
 # tasks file for ./roles/security
 
-- name: FAIL2BAN | install dependencies
+- name: "FAIL2BAN | install dependencies"
   ansible.builtin.apt:
     pkg: fail2ban
     state: present
@@ -11,7 +11,7 @@
     - security
     - fail2ban
 
-- name: FAIL2BAN | override jail.local configurations
+- name: "FAIL2BAN | override jail.local configurations"
   ansible.builtin.template:
     src: jail.local.j2
     dest: /etc/fail2ban/jail.local
@@ -19,11 +19,12 @@
     owner: root
     group: root
     mode: "0640"
+  notify: restart and enable fail2ban
   tags:
     - security
     - fail2ban
 
-- name: FAIL2BAN | add proxmox filder config
+- name: "FAIL2BAN | add proxmox filder config"
   ansible.builtin.template:
     src: proxmox.conf.j2
     dest: /etc/fail2ban/filder.d/proxmox.conf
@@ -34,16 +35,7 @@
   when:
     - security_fail2ban_proxmox is defined
     - security_fail2ban_proxmox | bool
-  tags:
-    - security
-    - fail2ban
-
-# ------------------------------------------------------------------------------
-- name: FAIL2BAN | start and enable service
-  ansible.builtin.service:
-    name: fail2ban
-    state: restarted
-    enabled: true
+  notify: restart and enable fail2ban
   tags:
     - security
     - fail2ban

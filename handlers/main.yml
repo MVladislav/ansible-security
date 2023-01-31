@@ -1,2 +1,40 @@
 ---
 # handlers file for ./roles/security
+
+# ------------------------------------------------------------------------------
+- name: "AUDITD | restart and enable auditd"
+  become: true
+  ansible.builtin.service:
+    name: auditd
+    state: restarted
+    enabled: true
+  listen: "restart and enable auditd"
+  # TODO: remove
+  ignore_errors: true
+  tags:
+    - security
+    - auditd
+
+# ------------------------------------------------------------------------------
+- name: "FAIL2BAN | restart and enable fail2ban"
+  become: true
+  ansible.builtin.service:
+    name: fail2ban
+    state: restarted
+    enabled: true
+  listen: "restart and enable fail2ban"
+  tags:
+    - security
+    - fail2ban
+
+# ------------------------------------------------------------------------------
+- name: "SNMP | restart and enable snmp"
+  become: true
+  ansible.builtin.service:
+    name: "{{ security_snmp.snmp_service_name }}"
+    state: restarted
+    enabled: true
+  listen: "restart and enable snmp"
+  tags:
+    - security
+    - snmp

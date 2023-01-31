@@ -8,11 +8,12 @@
     pkg: "{{ item }}"
     state: present
     force_apt_get: true # apt-get instead of aptitude
+    update_cache: true
   with_items:
     - "{{ security_snmp.snmp_packages }}"
     - "{{ security_snmp.snmp_additional_packages }}"
   tags:
-    - install_server
+    - security
     - snmp
 
 # ------------------------------------------------------------------------------
@@ -29,7 +30,7 @@
     setype: lib_t
     selevel: s0
   tags:
-    - install_server
+    - security
     - snmp
 
 # ------------------------------------------------------------------------------
@@ -48,7 +49,7 @@
   with_items:
     - "{{ security_snmp.snmp_extension_list }}"
   tags:
-    - install_server
+    - security
     - snmp
 
 # ------------------------------------------------------------------------------
@@ -66,7 +67,7 @@
     selevel: s0
   when: '"pve" in ansible_kernel'
   tags:
-    - install_server
+    - security
     - snmp
 
 # ------------------------------------------------------------------------------
@@ -85,7 +86,7 @@
 #   notify:
 #     - restart snmp
 #   tags:
-#     - install_server
+#     - security
 #     - snmp
 
 # ------------------------------------------------------------------------------
@@ -103,23 +104,12 @@
     selevel: s0
   register: check_snmp
   check_mode: true
+  notify: restart and enable snmp
   tags:
-    - install_server
+    - security
     - snmp
 
 # ------------------------------------------------------------------------------
-- name: "SNMP | stopped snmp"
-  become: true
-  ansible.builtin.service:
-    name: "{{ security_snmp.snmp_service_name }}"
-    state: stopped
-  when:
-    - check_snmp is defined
-    - check_snmp.changed
-  tags:
-    - install_server
-    - snmp
-
 - name: "SNMP | create snmp config"
   become: true
   ansible.builtin.template:
@@ -132,25 +122,10 @@
     serole: object_r
     setype: etc_t
     selevel: s0
-  # notify:
-  #   - restart snmp
-  #   - enabled snmp
   when:
     - check_snmp is defined
-    - check_snmp.changed
+    - check_snmp.changed | bool
+  notify: restart and enable snmp
   tags:
-    - install_server
-    - snmp
-
-- name: "SNMP | started snmp"
-  become: true
-  ansible.builtin.service:
-    name: "{{ security_snmp.snmp_service_name }}"
-    state: started
-    enabled: true
-  when:
-    - check_snmp is defined
-    - check_snmp.changed
-  tags:
-    - install_server
+    - security
     - snmp

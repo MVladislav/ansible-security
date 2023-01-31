@@ -2,9 +2,9 @@
 # tasks file for ./roles/security
 
 # AUDITD
-- name: auditd
+- name: "SECURITY | auditd"
   become: true
-  import_tasks: auditd.yml
+  ansible.builtin.import_tasks: auditd.yml
   when:
     - security_setup_services is defined
     - security_setup_services.auditd is defined
@@ -14,9 +14,9 @@
     - auditd
 
 # FAIL2BAN
-- name: fail2ban
+- name: "SECURITY | fail2ban"
   become: true
-  import_tasks: fail2ban.yml
+  ansible.builtin.import_tasks: fail2ban.yml
   when:
     - security_setup_services is defined
     - security_setup_services.fail2ban is defined
@@ -26,8 +26,8 @@
     - fail2ban
 
 # SNMP
-- name: snmp
-  import_tasks: snmp.yml
+- name: "SECURITY | snmp"
+  ansible.builtin.import_tasks: snmp.yml
   when:
     - security_setup_services is defined
     - security_setup_services.snmp is defined

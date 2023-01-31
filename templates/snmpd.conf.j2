@@ -3,25 +3,22 @@
 createUser {{ security_snmp.snmp_user }} SHA {{ security_snmp.snmp_password }} AES {{ security_snmp.snmp_encryption }}
 
 rouser {{ security_snmp.snmp_user }} authpriv
-{% if security_snmp.snmp_agent_address_protocol.ipv4 is defined and security_snmp.snmp_agent_address_protocol.ipv4 | length > 0
-and security_snmp.snmp_agent_address_port.ipv4 and security_snmp.snmp_agent_address_port.ipv4 | length > 0 %}
-{% if security_snmp.snmp_agent_address_address.ipv4 is defined and security_snmp.snmp_agent_address_address.ipv4 | length > 0 %}
-agentAddress {{ security_snmp.snmp_agent_address_protocol.ipv4 }}:{{ security_snmp.snmp_agent_address_address.ipv4 }}:{{ security_snmp.snmp_agent_address_port.ipv4 }}
+{% if security_snmp_ipv4_enabled %}
+{% if security_snmp_ipv4_with_address %}
+agentAddress {{ security_snmp.snmp_agent_address.ipv4_a }}
 {% else %}
-agentAddress {{ security_snmp.snmp_agent_address_protocol.ipv4 }}:{{ security_snmp.snmp_agent_address_port.ipv4 }}
+agentAddress {{ security_snmp.snmp_agent_address.ipv4 }}
 {% endif %}
 {% endif %}
 
-{% if security_snmp.snmp_agent_address_protocol.ipv6 is defined and security_snmp.snmp_agent_address_protocol.ipv6 | length > 0
-and security_snmp.snmp_agent_address_port.ipv6 and security_snmp.snmp_agent_address_port.ipv6 | length > 0 %}
-{% if security_snmp.snmp_agent_address_address.ipv6 is defined and security_snmp.snmp_agent_address_address.ipv6 | length > 0 %}
-agentAddress {{ security_snmp.snmp_agent_address_protocol.ipv6 }}:{{ security_snmp.snmp_agent_address_address.ipv6 }}:{{ security_snmp.snmp_agent_address_port.ipv6 }}
+{% if security_snmp_ipv6_enabled %}
+{% if security_snmp_ipv6_with_address %}
+agentAddress {{ security_snmp.snmp_agent_address.ipv6_a }}
 {% else %}
-agentAddress {{ security_snmp.snmp_agent_address_protocol.ipv6 }}:{{ security_snmp.snmp_agent_address_port.ipv6 }}
+agentAddress {{ security_snmp.snmp_agent_address.ipv6 }}
 {% endif %}
 {% endif %}
 master  agentx
-
 
 {% if security_snmp.snmp_location is defined and security_snmp.snmp_location | length > 0 %}
 sysLocation {{ security_snmp.snmp_location }}
@@ -58,5 +55,4 @@ extend .1.3.6.1.4.1.2021.7890.4 serial   /bin/cat /sys/devices/virtual/dmi/id/pr
 extend uptime /bin/cat /proc/uptime
 
 ## This line enables Observium's ifAlias description injection
-## apt install libsnmp-extension-passpersist-perl
 pass_persist .1.3.6.1.2.1.31.1.1.1.18 /usr/local/bin/ifAlias_persist

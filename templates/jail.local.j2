@@ -1,46 +1,69 @@
 [DEFAULT]
 logtimezone=UTC+0800
 
+# Ban hosts for {{ security_jail_bantime / 60 }} minutes:
+bantime = {{ security_jail_bantime }}
+# Retry once per 5 minutes:
+findtime = 300
+
+# Consider a host banned after {{ security_jail_maxretry }} failed attempts:
 maxretry = {{ security_jail_maxretry }}
 
-findtime = 300
-bantime = {{ security_jail_bantime }}
+
+# Ports to be banned
+# Usually should be overridden in a particular jail
+port = 0:65535
+# Default protocol
+protocol = tcp
+# Specify chain where jumps would need to be added in ban-actions expecting parameter chain
+chain = INPUT
+# Allow IPv6 addresses:
+allowipv6 = true
 
 # Override /etc/fail2ban/jail.d/00-firewalld.conf:
 banaction = {{ security_jail_banaction }}
-action_ = %(banaction)...
-action_mw = %(banaction)...
-action_mwl = %(banaction)s...
+banaction_allports = iptables-allports
+
+# The simplest action to take: ban only
+# Add a message to the log when a ban occurs:
+action_ = %(banaction)s[name=%(__name__)s, bantime="%(bantime)s", port="%(port)s", protocol="%(protocol)s", chain="%(chain)s", allowipv6="%(allowipv6)s"]
+
+# Add a message to the log when a ban occurs:
+action_mw = %(action_)s
+action_mwl = %(action_)s
+
+# globally (section [DEFAULT]) or per specific section
+action = %(action_)s
 
 backend = auto
 usedns = warn
-chain = INPUT
-
-# destemail = root@localhost
-# sendername = Fail2Ban
-# mta = sendmail
-
-protocol = tcp
-protocol="%(protocol)s"...
 
 ignoreip = 127.0.0.1/8
 
+# Enable logging:
+logpath = /var/log/auth.log
+
+##### SSHD: START######
 [sshd]
 enabled = {{ security_jail_enabled }}
-maxretry = {{ security_jail_maxretry }}
-port = ssh
+port    = ssh
+logpath = %(sshd_log)s
+backend = %(sshd_backend)s
 filter = sshd
-logpath = /var/log/auth.log
-bantime = {{ security_jail_bantime }}
+
+# Apply the jail to the ssh service:
+action = iptables-multiport[name=sshd, port="22, ssh", protocol=%(protocol)s, allowipv6=%(allowipv6)s]
 
 {% if security_fail2ban_proxmox == true %}
 ##### PROXMOX2: START######
 [proxmox2]
-enabled = true
-maxretry = {{ security_jail_maxretry }}
+enabled = {{ security_fail2ban_proxmox }}
 port    = https,http,8006
 filter  = proxmox2
 logpath  = /var/log/daemon.log
-bantime  = {{ security_jail_bantime }}
+
+# Apply the jail to the proxmox2 service:
+action = iptables-multiport[name=proxmox2, port="8006, 8009", protocol=%(protocol)s, allowipv6=%(allowipv6)s]
+
 ##### PROXMOX2: END######
 {% endif %}
