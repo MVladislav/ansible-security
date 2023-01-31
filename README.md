@@ -3,6 +3,7 @@
 **security**
 
 [![Ansible Lint](https://github.com/MVladislav/ansible-security/actions/workflows/ansible-lint.yml/badge.svg)](https://github.com/MVladislav/ansible-security/actions/workflows/ansible-lint.yml)
+[![Ansible Molecule Test](https://github.com/MVladislav/ansible-security/actions/workflows/ci.yml/badge.svg)](https://github.com/MVladislav/ansible-security/actions/workflows/ci.yml)
 
 ## Requirements
 
