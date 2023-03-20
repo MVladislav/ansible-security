@@ -29,11 +29,11 @@ security_auditd_priority_boost: 4
 security_auditd_name_format: NONE
 security_auditd_max_log_file_action: ignore # ignore | keep_logs | rotate
 security_auditd_space_left: 75
-security_auditd_space_left_action: syslog # email | syslog
+security_auditd_space_left_action: SYSLOG # EMAIL | SYSLOG
 security_auditd_verify_email: "yes"
 security_auditd_action_mail_acct: root
 security_auditd_admin_space_left: 50
-security_auditd_admin_space_left_action: halt # halt | suspend
+security_auditd_admin_space_left_action: HALT # HALT | SUSPEND
 security_auditd_disk_full_action: SUSPEND
 security_auditd_disk_error_action: SUSPEND
 security_auditd_use_libwrap: "yes"
