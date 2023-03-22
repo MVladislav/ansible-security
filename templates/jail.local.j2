@@ -35,7 +35,7 @@ action_mwl = %(action_)s
 # globally (section [DEFAULT]) or per specific section
 action = %(action_)s
 
-backend = auto
+backend = {{ security_jail_backend }}
 usedns = warn
 
 ignoreip = 127.0.0.1/8

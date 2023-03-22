@@ -9,8 +9,6 @@
     state: restarted
     enabled: true
   listen: "restart and enable auditd"
-  # TODO: remove
-  ignore_errors: true
   tags:
     - security
     - auditd
