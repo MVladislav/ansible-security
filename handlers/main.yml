@@ -9,9 +9,17 @@
     state: restarted
     enabled: true
   listen: "restart and enable auditd"
+  register: restart_auditd
   tags:
     - security
     - auditd
+
+- name: "Verify Auditd restart handler"
+  ansible.builtin.debug:
+    msg: "Auditd restart handler failed with the following error: {{ restart_auditd.msg }}"
+  when:
+    - restart_auditd is defined
+    - restart_auditd.failed
 
 # ------------------------------------------------------------------------------
 - name: "FAIL2BAN | restart and enable fail2ban"
