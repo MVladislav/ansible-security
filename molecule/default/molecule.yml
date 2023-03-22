@@ -36,9 +36,10 @@ provisioner:
     group_vars:
       all:
         ansible_python_interpreter: /usr/bin/python3
+  files:
+    exclude:
+      - .github
+      - molecule
+      - .github
 verifier:
   name: ansible
-options:
-  exclude_paths:
-    - molecule/
-    - .github/
