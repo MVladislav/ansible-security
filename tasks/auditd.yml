@@ -66,3 +66,24 @@
   tags:
     - security
     - auditd
+
+- name: "AUDITD | restart and enable auditd"
+  become: true
+  ansible.builtin.service:
+    name: auditd
+    state: restarted
+    enabled: true
+  register: restart_auditd
+  tags:
+    - security
+    - auditd
+
+- name: "Verify Auditd restart handler"
+  ansible.builtin.debug:
+    msg: "Auditd restart handler failed with the following error: {{ restart_auditd.msg }}"
+  when:
+    - restart_auditd is defined
+    - restart_auditd.failed
+  tags:
+    - security
+    - auditd
