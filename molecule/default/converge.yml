@@ -5,3 +5,8 @@
     - name: "Include ansible-security"
       include_role:
         name: "ansible-security"
+  vars:
+    security_setup_services:
+      auditd: false
+      fail2ban: true
+      snmp: true
