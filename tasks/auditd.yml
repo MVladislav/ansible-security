@@ -60,7 +60,7 @@
 - name: "AUDITD | config cron rule (audit.cron)"
   ansible.builtin.template:
     src: auditd.cron.j2
-    dest: "/etc/cron.daily/auditd"
+    dest: "/etc/cron.hourly/auditd"
     mode: "0755"
   notify: restart and enable auditd
   tags:

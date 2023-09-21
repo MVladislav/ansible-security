@@ -27,7 +27,7 @@ security_auditd_max_log_file: 10
 security_auditd_num_logs: 5
 security_auditd_priority_boost: 4
 security_auditd_name_format: NONE
-security_auditd_max_log_file_action: ignore # ignore | keep_logs | rotate
+security_auditd_max_log_file_action: IGNORE # IGNORE | KEEP_LOGS | ROTATE
 security_auditd_space_left: 75
 security_auditd_space_left_action: SYSLOG # EMAIL | SYSLOG
 security_auditd_verify_email: "yes"

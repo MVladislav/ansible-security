@@ -4,52 +4,73 @@ IFS=$'\n\t'
 
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin
 
-logger -p cron.info -t AUDITD "run cleanup auditd logs ..."
-
+LOG_TAG="AUDITD"
 FORMAT="%TY-%Tm-%Td_%TH:%TM:%.2TS" # Customize timestamp format as desired, per `man date`
-# COMPRESS=(gzip -vf)                # Change to bzip2 or xz as desired
-COMPRESS=(pigz -vf)                # Change to bzip2 or xz as desired
-KEEP=30                            # Number of compressed log files to keep
-ROTATE_TIME=5                      # Amount of time in seconds to wait for auditd to rotate its logs. Adjust this as necessary
+# COMPRESS_COMMAND=(gzip -vf)                # Change to bzip2 or xz as desired
+COMPRESS_COMMAND=(pigz -vf)          # Change to bzip2 or xz as desired
+KEEP=30                              # Number of compressed log files to keep
+ROTATE_TIME=5                        # Amount of time in seconds to wait for auditd to rotate its logs. Adjust this as necessary
+MAX_LOG_SIZE=$((1024 * 1024 * 1024)) # 1GB in bytes
 AUDITD_BASE_LOG_PATH="{{ security_auditd_log_file_path }}"
 AUDITD_LOG_PATTERN_U="${AUDITD_BASE_LOG_PATH}/audit.log.[0-9]+?"
 AUDITD_LOG_PATTERN_C="${AUDITD_BASE_LOG_PATH}/audit.log.*(xz|gz|bz2)$"
 
+# Logging function
+log_info() {
+  logger -p cron.info -t "$LOG_TAG" "$1"
+}
+log_error() {
+  logger -p cron.error -t "$LOG_TAG" "$1"
+}
+log_info "run cleanup auditd logs ..."
+
+# Move and compress old logs
 rename_and_compress_old_logs() {
-  logger -p cron.info -t AUDITD "start search and compress logs ..."
+  log_info "start search and compress logs ..."
   find "${AUDITD_BASE_LOG_PATH}/" -type f -regextype posix-extended -regex "$AUDITD_LOG_PATTERN_U" |
     while IFS= read -r file; do
-      logger -p cron.info -t AUDITD "compressing file $file"
-      timestamp=$(find "$file" -printf "${FORMAT}\n")
-      new_file=${file%.[0-9]*}.${timestamp}
-      mv -v "$file" "$new_file" 2> >(logger -p cron.err -t AUDITD) | logger -p cron.info -t AUDITD
-      "${COMPRESS[@]}" "$new_file" 2> >(logger -p cron.err -t AUDITD) | logger -p cron.info -t AUDITD
+      log_info "Checking file size of $file"
+      if [ "$(stat -c %s "$file")" -ge "$MAX_LOG_SIZE" ]; then
+        log_info "compressing file $file"
+        #timestamp=$(stat -c "%Y-%m-%d_%H:%M:%S" "$file")
+        timestamp=$(find "$file" -printf "${FORMAT}\n")
+        new_file="${file%.[0-9]*}.${timestamp}"
+
+        #mv -v "$file" "$new_file" 2> >(logger -p cron.err -t "$LOG_TAG") | logger -p cron.info -t "$LOG_TAG"
+        if mv -v "$file" "$new_file"; then
+          "${COMPRESS_COMMAND[@]}" "$new_file" 2> >(logger -p cron.err -t "$LOG_TAG") | logger -p cron.info -t "$LOG_TAG"
+        else
+          log_error "Failed to move $file to $new_file"
+        fi
+      else
+        log_info "File size not reached for $file, will not be compressed"
+      fi
     done
-  logger -p cron.info -t AUDITD "... compress logs done"
+  log_info "... compress logs done"
 }
 
 delete_old_compressed_logs() {
-  logger -p cron.info -t AUDITD "remove compressed logs to keep only ${KEEP} ..."
+  log_info "remove compressed logs to keep only ${KEEP} ..."
   C_REMOVED_COMPRESSED=$(find "${AUDITD_BASE_LOG_PATH}/" -type f -regextype posix-extended -regex "${AUDITD_LOG_PATTERN_C}" | sort -n | head -n -${KEEP} | xargs -d '\n' -I {} rm -v {} | wc -l)
-  logger -p cron.info -t AUDITD "... ${C_REMOVED_COMPRESSED} compressed files removed"
+  log_info "... ${C_REMOVED_COMPRESSED} compressed files removed"
 
-  logger -p cron.info -t AUDITD "remove uncompressed logs to keep only needed ..."
+  log_info "remove uncompressed logs to keep only needed ..."
   C_REMOVED_UNCOMPRESSED=$(find "${AUDITD_BASE_LOG_PATH}/" -type f -regextype posix-extended -regex "${AUDITD_LOG_PATTERN_U}" -print0)
   if [ -n "${C_REMOVED_UNCOMPRESSED}" ]; then
     C_REMOVED_UNCOMPRESSED_COUNT=$(echo -n "${C_REMOVED_UNCOMPRESSED}" | tr '\0' '\n' | wc -l)
     echo -n "${C_REMOVED_UNCOMPRESSED}" | xargs -0 -r rm -v
-    logger -p cron.info -t AUDITD "... $C_REMOVED_UNCOMPRESSED_COUNT uncompressed files removed"
+    log_info "... $C_REMOVED_UNCOMPRESSED_COUNT uncompressed files removed"
   else
-    logger -p cron.info -t AUDITD "... no audit log files found to remove"
+    log_info "... no audit log files found to remove"
   fi
 }
 
 rename_and_compress_old_logs
-service auditd rotate 2> >(logger -p cron.err -t AUDITD) | logger -p cron.info -t AUDITD
+service auditd rotate 2> >(logger -p cron.err -t "$LOG_TAG") | logger -p cron.info -t "$LOG_TAG"
 sleep $ROTATE_TIME
 rename_and_compress_old_logs
 delete_old_compressed_logs
 
-logger -p cron.info -t AUDITD "... finished cleanup auditd logs"
+log_info "... finished cleanup auditd logs"
 
 exit 0
