@@ -1,76 +1,140 @@
 #!/usr/bin/env bash
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
 set -euo pipefail
 IFS=$'\n\t'
 
-export PATH=/sbin:/bin:/usr/sbin:/usr/bin
-
-LOG_TAG="AUDITD"
-FORMAT="%TY-%Tm-%Td_%TH:%TM:%.2TS" # Customize timestamp format as desired, per `man date`
-# COMPRESS_COMMAND=(gzip -vf)                # Change to bzip2 or xz as desired
-COMPRESS_COMMAND=(pigz -vf)          # Change to bzip2 or xz as desired
-KEEP=30                              # Number of compressed log files to keep
-ROTATE_TIME=5                        # Amount of time in seconds to wait for auditd to rotate its logs. Adjust this as necessary
-MAX_LOG_SIZE=$((1024 * 1024 * 1024)) # 1GB in bytes
-AUDITD_BASE_LOG_PATH="{{ security_auditd_log_file_path }}"
+MAILTO=""
+COMPRESS_FILE_DATE_FORMAT="%TY-%Tm-%Td_%TH:%TM:%.2TS"      # Customize timestamp format as desired, per `man date`
+COMPRESS_COMMAND=("pigz" "-vf")                            # Change to gzip, bzip2 or xz as desired
+KEEP=30                                                    # Number of compressed log files to keep
+ROTATE_TIME=5                                              # Amount of time in seconds to wait for auditd to rotate its logs. Adjust this as necessary
+MAX_LOG_SIZE=$((1024 * 1024 * 1024))                       # 1GB in bytes
+AUDITD_BASE_LOG_PATH="{{ security_auditd_log_file_path }}" # "/var/log/audit"
+AUDITD_LOG_MAIN_FILE="{{ security_auditd_log_file }}"      # "/var/log/audit/audit.log"
 AUDITD_LOG_PATTERN_U="${AUDITD_BASE_LOG_PATH}/audit.log.[0-9]+?"
 AUDITD_LOG_PATTERN_C="${AUDITD_BASE_LOG_PATH}/audit.log.*(xz|gz|bz2)$"
 
-# Logging function
+LOG_TAG="AUDITD"
+LOG_GROUP="{{ security_auditd_log_group }}" # "adm"
+LOG_DIR="/var/log/audit_cleanup"
+INFO_LOG="$LOG_DIR/cleanup_info.log"
+ERROR_LOG="$LOG_DIR/cleanup_error.log"
+
+# Logging function for info messages
 log_info() {
-  logger -p cron.info -t "$LOG_TAG" "$1"
+  local message
+  # Check if the function was provided an argument, if not, read from stdin
+  if [ $# -eq 0 ]; then
+    while read -r message; do
+      echo "$(date +'%Y-%m-%dT%H:%M:%S.%N%:z') ${HOSTNAME} ${LOG_TAG}: [INFO] $message" >>"$INFO_LOG"
+    done
+  else
+    message="$1"
+    echo "$(date +'%Y-%m-%dT%H:%M:%S.%N%:z') ${HOSTNAME} ${LOG_TAG}: [INFO] $message" >>"$INFO_LOG"
+  fi
 }
+# Logging function for error messages
 log_error() {
-  logger -p cron.error -t "$LOG_TAG" "$1"
+  local message
+  # Check if the function was provided an argument, if not, read from stdin
+  if [ $# -eq 0 ]; then
+    while read -r message; do
+      echo "$(date +'%Y-%m-%dT%H:%M:%S.%N%:z') ${HOSTNAME} ${LOG_TAG}: [ERROR] $message" >>"$ERROR_LOG"
+    done
+  else
+    message="$1"
+    echo "$(date +'%Y-%m-%dT%H:%M:%S.%N%:z') ${HOSTNAME} ${LOG_TAG}: [ERROR] $message" >>"$ERROR_LOG"
+  fi
 }
-log_info "run cleanup auditd logs ..."
+# Redirect global stdout and stderr to functions log_info or log_error
+exec > >(log_info) 2> >(log_error)
+
+# Ensure the log directory exists and group is set
+mkdir -p "$LOG_DIR"
+chgrp "$LOG_GROUP" "$LOG_DIR"
+# Ensure the log files have correct group set
+touch "$INFO_LOG"
+chgrp "$LOG_GROUP" "$INFO_LOG"
+touch "$ERROR_LOG"
+chgrp "$LOG_GROUP" "$ERROR_LOG"
+
+log_info "Starting auditd log cleanup..."
+
+# Check current log file and rotate on size
+rotate_log() {
+  log_info "Checking file by size for rotate log..."
+  if [ "$(stat -c %s "$AUDITD_LOG_MAIN_FILE")" -ge "$MAX_LOG_SIZE" ]; then
+    log_info "Rotating file $AUDITD_LOG_MAIN_FILE"
+    service auditd rotate # 2> >(log_error) | log_info
+    sleep "$ROTATE_TIME"
+  else
+    log_info "File $AUDITD_LOG_MAIN_FILE no reach size of $MAX_LOG_SIZE and will not be rotated!"
+
+    # Compare the file's timestamp with yesterday's timestamp
+    # - Get the modification timestamp of the file in seconds since the epoch
+    # - Calculate the timestamp for yesterday in seconds since the epoch
+    log_info "Checking file by date for rotate log..."
+    if [ "$(stat -c %Y $AUDITD_LOG_MAIN_FILE)" -lt "$(date -d 'yesterday' +%s)" ]; then
+      log_info "Rotating file $AUDITD_LOG_MAIN_FILE"
+      service auditd rotate # 2> >(log_error) | log_info
+      sleep "$ROTATE_TIME"
+    else
+      log_info "File $AUDITD_LOG_MAIN_FILE is from today and will not be rotated!"
+    fi
+  fi
+
+  log_info "... checking and rotating log done!"
+}
 
 # Move and compress old logs
+# - not need to reach a special size
+# - they will removed in next step
 rename_and_compress_old_logs() {
-  log_info "start search and compress logs ..."
+  log_info "Searching and compressing logs..."
   find "${AUDITD_BASE_LOG_PATH}/" -type f -regextype posix-extended -regex "$AUDITD_LOG_PATTERN_U" |
     while IFS= read -r file; do
-      log_info "Checking file size of $file"
-      if [ "$(stat -c %s "$file")" -ge "$MAX_LOG_SIZE" ]; then
-        log_info "compressing file $file"
-        #timestamp=$(stat -c "%Y-%m-%d_%H:%M:%S" "$file")
-        timestamp=$(find "$file" -printf "${FORMAT}\n")
-        new_file="${file%.[0-9]*}.${timestamp}"
+      log_info "  Compressing file $file"
+      timestamp=$(find "$file" -printf "${COMPRESS_FILE_DATE_FORMAT}\n")
+      new_file="${file%.[0-9]*}.${timestamp}"
 
-        #mv -v "$file" "$new_file" 2> >(logger -p cron.err -t "$LOG_TAG") | logger -p cron.info -t "$LOG_TAG"
-        if mv -v "$file" "$new_file"; then
-          "${COMPRESS_COMMAND[@]}" "$new_file" 2> >(logger -p cron.err -t "$LOG_TAG") | logger -p cron.info -t "$LOG_TAG"
-        else
-          log_error "Failed to move $file to $new_file"
-        fi
+      # rename file in if, to check if correct removed
+      if mv -v "$file" "$new_file"; then
+        # compress the log file
+        "${COMPRESS_COMMAND[@]}" "$new_file" # 2> >(log_error) | log_info
       else
-        log_info "File size not reached for $file, will not be compressed"
+        log_error "Failed to move $file to $new_file"
       fi
     done
-  log_info "... compress logs done"
+  log_info "... compressing logs done!"
 }
 
+# Delete below used for remove to much compressed files
+# or uncompressed files which was not removed (example from compress function which not also remove)
 delete_old_compressed_logs() {
-  log_info "remove compressed logs to keep only ${KEEP} ..."
-  C_REMOVED_COMPRESSED=$(find "${AUDITD_BASE_LOG_PATH}/" -type f -regextype posix-extended -regex "${AUDITD_LOG_PATTERN_C}" | sort -n | head -n -${KEEP} | xargs -d '\n' -I {} rm -v {} | wc -l)
-  log_info "... ${C_REMOVED_COMPRESSED} compressed files removed"
+  local rm_prefix="$1"
+  local rm_path="$2"
+  local rm_pattern="$3"
+  local rm_keep="$4"
+  local rm_files
+  local rm_count=0
 
-  log_info "remove uncompressed logs to keep only needed ..."
-  C_REMOVED_UNCOMPRESSED=$(find "${AUDITD_BASE_LOG_PATH}/" -type f -regextype posix-extended -regex "${AUDITD_LOG_PATTERN_U}" -print0)
-  if [ -n "${C_REMOVED_UNCOMPRESSED}" ]; then
-    C_REMOVED_UNCOMPRESSED_COUNT=$(echo -n "${C_REMOVED_UNCOMPRESSED}" | tr '\0' '\n' | wc -l)
-    echo -n "${C_REMOVED_UNCOMPRESSED}" | xargs -0 -r rm -v
-    log_info "... $C_REMOVED_UNCOMPRESSED_COUNT uncompressed files removed"
+  log_info "Removing ${rm_prefix} log files to keep only needed..."
+  rm_files=$(find "${rm_path}/" -type f -regextype posix-extended -regex "${rm_pattern}" | sort -n | head -n -"${rm_keep}")
+  if [ -n "${rm_files}" ]; then
+    rm_count=$(echo "${rm_files}" | wc -l)
+    echo "${rm_files}" | tr '\n' '\0' | xargs -0 -r rm -v # 2> >(log_error) | log_info
+    log_info "... ${rm_count} ${rm_prefix} log files removed!"
   else
-    log_info "... no audit log files found to remove"
+    log_info "... no ${rm_prefix} log files found to remove!"
   fi
 }
 
+# Execute cleanup tasks
 rename_and_compress_old_logs
-service auditd rotate 2> >(logger -p cron.err -t "$LOG_TAG") | logger -p cron.info -t "$LOG_TAG"
-sleep $ROTATE_TIME
+rotate_log
 rename_and_compress_old_logs
-delete_old_compressed_logs
+delete_old_compressed_logs "compressed" "${AUDITD_BASE_LOG_PATH}" "${AUDITD_LOG_PATTERN_C}" ${KEEP}
+delete_old_compressed_logs "uncompressed" "${AUDITD_BASE_LOG_PATH}" "${AUDITD_LOG_PATTERN_U}" 0
 
-log_info "... finished cleanup auditd logs"
-
+log_info "... Auditd log cleanup finished!"
 exit 0
