@@ -67,11 +67,11 @@ security_jail_backend: systemd # auto | systemd
 security_fail2ban_proxmox: false
 
 # ------------------------------------------------------------------------------
-# FAIL2BAN
+# SNMP
 # ------------------------------------------------------------------------------
 security_snmp_user: snmp
-security_snmp_password: snmp_password
-security_snmp_encryption: snmp_encryption
+security_snmp_password: "{{ omit }}"
+security_snmp_encryption: "{{ omit }}"
 security_snmp_location: ""
 security_snmp_contact: ""
 security_snmp_address_ipv4: "127.0.0.1"

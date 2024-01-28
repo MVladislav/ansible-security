@@ -1,0 +1,25 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: "Include ansible-security"
+      ansible.builtin.include_role:
+        name: "ansible-security"
+  vars:
+    security_setup_services:
+      auditd: false
+      fail2ban: true
+      snmp: true
+
+    security_fail2ban_proxmox: false
+
+    security_snmp_user: snmp
+    security_snmp_password: Jv8Arg5zycd5u1cI0uBg # pragma: allowlist secret
+    security_snmp_encryption: D48NnYARYzjthRFrZ5Zz # pragma: allowlist secret
+    security_snmp_location: home
+    security_snmp_contact: root
+    security_snmp_address_ipv4: "{{ omit }}"
+    security_snmp_address_ipv6: "{{ omit }}"
+    security_snmp_port_ipv4: 161
+    security_snmp_port_ipv6: "{{ omit }}"

@@ -24,7 +24,7 @@
     state: directory
     owner: root
     group: root
-    mode: 0755
+    mode: "0755"
     seuser: system_u
     serole: object_r
     setype: lib_t
@@ -41,7 +41,7 @@
     dest: '{{ security_snmp_extension_scripts + "/" }}'
     owner: root
     group: root
-    mode: 0755
+    mode: "0755"
     seuser: system_u
     serole: object_r
     setype: lib_t
@@ -60,7 +60,7 @@
     dest: '{{ security_snmp_extension_scripts + "/" }}'
     owner: root
     group: root
-    mode: 0755
+    mode: "0755"
     seuser: system_u
     serole: object_r
     setype: lib_t
@@ -97,7 +97,7 @@
     dest: "{{ security_snmp.snmp_config }}"
     owner: root
     group: root
-    mode: 0600
+    mode: "0600"
     seuser: system_u
     serole: object_r
     setype: etc_t
@@ -117,7 +117,7 @@
     dest: "{{ security_snmp.snmp_config }}"
     owner: root
     group: root
-    mode: 0600
+    mode: "0600"
     seuser: system_u
     serole: object_r
     setype: etc_t
