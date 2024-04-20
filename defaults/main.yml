@@ -9,50 +9,83 @@ security_setup_services:
 # ------------------------------------------------------------------------------
 # AUDITD
 # ------------------------------------------------------------------------------
+security_auditd_add_custom_cron_compressor: false
 security_auditd_dependencies:
   - auditd
   - audispd-plugins
 security_auditd_config_directory: /etc/audit
 security_auditd_config_file: auditd.conf
-
-security_auditd_local_events: "yes"
-security_auditd_write_logs: "yes"
 security_auditd_log_file_path: /var/log/audit
 security_auditd_log_file: "{{ security_auditd_log_file_path }}/audit.log"
 security_auditd_log_group: adm # adm | root
-security_auditd_log_format: ENRICHED # ENRICHED | RAW
-security_auditd_flush: INCREMENTAL_ASYNC
-security_auditd_freq: 50
-security_auditd_max_log_file: 10
-security_auditd_num_logs: 5
-security_auditd_priority_boost: 4
-security_auditd_name_format: NONE
-security_auditd_max_log_file_action: IGNORE # IGNORE | KEEP_LOGS | ROTATE
-security_auditd_space_left: 75
-security_auditd_space_left_action: SYSLOG # EMAIL | SYSLOG
-security_auditd_verify_email: "yes"
-security_auditd_action_mail_acct: root
-security_auditd_admin_space_left: 50
-security_auditd_admin_space_left_action: HALT # HALT | SUSPEND
-security_auditd_disk_full_action: SUSPEND
-security_auditd_disk_error_action: SUSPEND
-security_auditd_use_libwrap: "yes"
-security_auditd_tcp_listen_queue: 5
-security_auditd_tcp_max_per_addr: 1
-security_auditd_transport: TCP
-security_auditd_tcp_client_max_idle: 0
-security_auditd_enable_krb5: "no"
-security_auditd_krb5_principal: auditd
-security_auditd_distribute_network: "no"
-security_auditd_q_depth: 1200
-security_auditd_overflow_action: SYSLOG
-security_auditd_max_restarts: 10
-security_auditd_plugin_dir: "{{ security_auditd_config_directory }}/plugins.d"
-security_auditd_end_of_event_timeout: 2
 
-# deprecated
-security_auditd_disp_qos: lossy
-security_auditd_dispatcher: /sbin/audispd
+security_auditd_conf_variables:
+  - key: local_events
+    value: "yes"
+  - key: write_logs
+    value: "yes"
+  - key: log_file
+    value: "{{ security_auditd_log_file }}"
+  - key: log_group
+    value: "{{ security_auditd_log_group }}"
+  - key: log_format
+    value: ENRICHED # ENRICHED | RAW
+  - key: flush
+    value: INCREMENTAL_ASYNC
+  - key: freq
+    value: 50
+  - key: max_log_file
+    value: 8
+  - key: num_logs
+    value: 5
+  - key: priority_boost
+    value: 4
+  - key: name_format
+    value: NONE
+  - key: max_log_file_action
+    value: KEEP_LOGS # IGNORE | KEEP_LOGS | ROTATE
+  - key: space_left
+    value: 75
+  - key: space_left_action
+    value: email # EMAIL | SYSLOG
+  - key: verify_email
+    value: "yes"
+  - key: action_mail_acct
+    value: root
+  - key: admin_space_left
+    value: 50
+  - key: admin_space_left_action
+    value: single # HALT | SUSPEND
+  - key: disk_full_action
+    value: halt
+  - key: disk_error_action
+    value: halt
+  - key: use_libwrap
+    value: "yes"
+  - key: tcp_listen_queue
+    value: 5
+  - key: tcp_max_per_addr
+    value: 1
+  - key: transport
+    value: TCP
+  - key: tcp_client_max_idle
+    value: 0
+  - key: enable_krb5
+    value: "no"
+  - key: krb5_principal
+    value: auditd
+  - key: distribute_network
+    value: "no"
+  - key: q_depth
+    value: 1200
+  - key: overflow_action
+    value: SYSLOG
+  - key: max_restarts
+    value: 10
+  - key: plugin_dir
+    value: "{{ security_auditd_config_directory }}/plugins.d"
+  - key: end_of_event_timeout
+    value: 2
 
 # ------------------------------------------------------------------------------
 # FAIL2BAN

@@ -25,6 +25,8 @@ security_setup_services:
   fail2ban: true
   snmp: false
 
+security_auditd_add_custom_cron_compressor: false
+
 security_fail2ban_proxmox: false
 
 security_snmp_user: snmp
@@ -52,6 +54,8 @@ Developed and testes with Ansible 2.14.4
         auditd: true
         fail2ban: true
         snmp: false
+
+      security_auditd_add_custom_cron_compressor: false
 
       security_fail2ban_proxmox: false
 
