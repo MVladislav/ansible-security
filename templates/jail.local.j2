@@ -1,61 +1,30 @@
 [DEFAULT]
-logtimezone=UTC+0800
+# Prevents banning Local (LAN subnets)
+ignoreip = 127.0.0.1/8
+#           10.0.0.0/8
+#           192.168.0.0/16
+#           172.16.0.0/12
 
-# Ban hosts for {{ security_jail_bantime / 60 }} minutes:
+banaction = {{ security_jail_banaction }}
+
+# number of seconds that a host is banned.
 bantime = {{ security_jail_bantime }}
-# Retry once per 5 minutes:
-findtime = 300
 
-# Consider a host banned after {{ security_jail_maxretry }} failed attempts:
+# number of failures before a host get banned.
 maxretry = {{ security_jail_maxretry }}
 
+# A host is banned if it has generated "maxretry" during the last "findtime" seconds.
+findtime = 300
 
-# Ports to be banned
-# Usually should be overridden in a particular jail
-port = 0:65535
-# Default protocol
-protocol = tcp
-# Specify chain where jumps would need to be added in ban-actions expecting parameter chain
-chain = INPUT
-# Allow IPv6 addresses:
-allowipv6 = true
+allowipv6 = auto
 
-# Override /etc/fail2ban/jail.d/00-firewalld.conf:
-banaction = {{ security_jail_banaction }}
-banaction_allports = iptables-allports
-
-# The simplest action to take: ban only
-# Add a message to the log when a ban occurs:
-action_ = %(banaction)s[name=%(__name__)s, bantime="%(bantime)s", port="%(port)s", protocol="%(protocol)s", chain="%(chain)s", allowipv6="%(allowipv6)s"]
-
-# Add a message to the log when a ban occurs:
-action_mw = %(action_)s
-action_mwl = %(action_)s
-
-# globally (section [DEFAULT]) or per specific section
-action = %(action_)s
-
-backend = {{ security_jail_backend }}
-usedns = warn
-
-ignoreip = 127.0.0.1/8
-
-# Enable logging:
-logpath = /var/log/auth.log
-
-##### SSHD: START######
-[sshd]
+##### SSHD: START ######
+[ssh]
 enabled = {{ security_jail_enabled }}
-port    = ssh
-logpath = %(sshd_log)s
-backend = %(sshd_backend)s
-filter = sshd
-
-# Apply the jail to the ssh service:
-action = iptables-multiport[name=sshd, port="22, ssh", protocol=%(protocol)s, allowipv6=%(allowipv6)s]
+##### SSHD: END ######
 
 {% if security_fail2ban_proxmox == true %}
-##### PROXMOX2: START######
+##### PROXMOX2: START ######
 [proxmox2]
 enabled = {{ security_fail2ban_proxmox }}
 port    = https,http,8006
@@ -65,5 +34,5 @@ logpath  = /var/log/daemon.log
 # Apply the jail to the proxmox2 service:
 action = iptables-multiport[name=proxmox2, port="8006, 8009", protocol=%(protocol)s, allowipv6=%(allowipv6)s]
 
-##### PROXMOX2: END######
+##### PROXMOX2: END ######
 {% endif %}

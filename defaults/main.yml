@@ -92,7 +92,7 @@ security_auditd_conf_variables:
 # ------------------------------------------------------------------------------
 # template jail.local.j2
 security_jail_bantime: 3600
-security_jail_banaction: iptables-multiport
+security_jail_banaction: iptables-allports # iptables-allports | iptables-multiport
 security_jail_enabled: true
 security_jail_maxretry: 3
 security_jail_backend: systemd # auto | systemd
