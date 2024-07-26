@@ -19,6 +19,7 @@ security_auditd_log_file_path: /var/log/audit
 security_auditd_log_file: "{{ security_auditd_log_file_path }}/audit.log"
 security_auditd_log_group: adm # adm | root
 
+# https://man7.org/linux/man-pages/man5/auditd.conf.5.html
 security_auditd_conf_variables:
   - key: local_events
     value: "yes"
@@ -43,11 +44,11 @@ security_auditd_conf_variables:
   - key: name_format
     value: NONE
   - key: max_log_file_action
-    value: KEEP_LOGS # IGNORE | KEEP_LOGS | ROTATE
+    value: rotate # ignore, syslog, suspend, rotate and keep_logs
   - key: space_left
     value: 75
   - key: space_left_action
-    value: email # EMAIL | SYSLOG
+    value: rotate # ignore, syslog, rotate, email, exec, suspend, single, and halt
   - key: verify_email
     value: "yes"
   - key: action_mail_acct
@@ -55,11 +56,11 @@ security_auditd_conf_variables:
   - key: admin_space_left
     value: 50
   - key: admin_space_left_action
-    value: single # HALT | SUSPEND
+    value: email # ignore, syslog, rotate, email, exec, suspend, single, and halt
   - key: disk_full_action
-    value: halt
+    value: halt # ignore, syslog, rotate, exec, suspend, single, and halt
   - key: disk_error_action
-    value: halt
+    value: halt # ignore, syslog, exec, suspend, single, and halt
   - key: use_libwrap
     value: "yes"
   - key: tcp_listen_queue

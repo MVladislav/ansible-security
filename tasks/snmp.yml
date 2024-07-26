@@ -104,7 +104,7 @@
     selevel: s0
   register: check_snmp
   check_mode: true
-  notify: restart and enable snmp
+  notify: Restart and enable snmp
   tags:
     - security
     - snmp
@@ -125,7 +125,7 @@
   when:
     - check_snmp is defined
     - check_snmp.changed | bool
-  notify: restart and enable snmp
+  notify: Restart and enable snmp
   tags:
     - security
     - snmp
