@@ -1,6 +1,6 @@
 [DEFAULT]
 # Prevents banning Local (LAN subnets)
-ignoreip = 127.0.0.1/8
+ignoreip = 127.0.0.1/8 ::1
 #           10.0.0.0/8
 #           192.168.0.0/16
 #           172.16.0.0/12
@@ -14,7 +14,7 @@ bantime = {{ security_jail_bantime }}
 maxretry = {{ security_jail_maxretry }}
 
 # A host is banned if it has generated "maxretry" during the last "findtime" seconds.
-findtime = 300
+findtime = {{ security_jail_findtime }}
 
 allowipv6 = auto
 
