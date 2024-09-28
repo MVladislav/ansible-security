@@ -22,4 +22,4 @@
     security_snmp_address_ipv4: "{{ omit }}"
     security_snmp_address_ipv6: "{{ omit }}"
     security_snmp_port_ipv4: 161
-    security_snmp_port_ipv6: "{{ omit }}"
+    # security_snmp_port_ipv6: 161

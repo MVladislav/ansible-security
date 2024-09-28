@@ -114,10 +114,10 @@ security_snmp_address_ipv6: "::1"
 security_snmp_agent_address_address:
   ipv4: "{{ security_snmp_address_ipv4 | default(ansible_default_ipv4.address) }}"
   ipv6: "{{ security_snmp_address_ipv6 | default(ansible_default_ipv6.address) }}"
-security_snmp_port_ipv4: 161
-security_snmp_port_ipv6: 161
-security_snmp_ipv4_enabled: true
-security_snmp_ipv6_enabled: true
+# security_snmp_port_ipv4: 161
+# security_snmp_port_ipv6: 161
+security_snmp_ipv4_enabled: "{{ true if security_snmp_port_ipv4 is defined else false }}"
+security_snmp_ipv6_enabled: "{{ true if security_snmp_port_ipv6 is defined else false }}"
 security_snmp_ipv4_with_address: false
 security_snmp_ipv6_with_address: false
 security_snmp_extension_scripts: "/usr/local/lib/snmpd"
