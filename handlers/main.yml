@@ -4,10 +4,11 @@
 # ------------------------------------------------------------------------------
 - name: "AUDITD | restart and enable auditd"
   become: true
-  ansible.builtin.service:
+  ansible.builtin.systemd_service:
     name: auditd
     state: restarted
     enabled: true
+    masked: false
   listen: "Restart and enable auditd"
   tags:
     - security
@@ -16,10 +17,11 @@
 # ------------------------------------------------------------------------------
 - name: "FAIL2BAN | restart and enable fail2ban"
   become: true
-  ansible.builtin.service:
+  ansible.builtin.systemd_service:
     name: fail2ban
     state: restarted
     enabled: true
+    masked: false
   listen: "Restart and enable fail2ban"
   tags:
     - security
@@ -28,10 +30,11 @@
 # ------------------------------------------------------------------------------
 - name: "SNMP | restart and enable snmp"
   become: true
-  ansible.builtin.service:
+  ansible.builtin.systemd_service:
     name: "{{ security_snmp.snmp_service_name }}"
     state: restarted
     enabled: true
+    masked: false
   listen: "Restart and enable snmp"
   tags:
     - security
