@@ -13,5 +13,9 @@ galaxy_info:
 
   galaxy_tags:
     - security
+    - auditd
+    - fail2ban
+    - snmp
+    - ssh
 
 dependencies: []

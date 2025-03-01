@@ -5,6 +5,11 @@ security_setup_services:
   auditd: true
   fail2ban: true
   snmp: false
+  ssh: false
+
+# ------------------------------------------------------------------------------
+clients:
+  - name: "{{ ansible_user }}"
 
 # ------------------------------------------------------------------------------
 # AUDITD
@@ -155,3 +160,114 @@ security_snmp:
   snmp_extension_proxmox:
     url: "https://raw.githubusercontent.com/librenms/librenms-agent/master/agent-local/proxmox"
     extend: "proxmox /usr/bin/sudo {{ security_snmp_extension_scripts }}/proxmox"
+
+# ------------------------------------------------------------------------------
+# SSH
+# ------------------------------------------------------------------------------
+security_ssh_only_client_setup: false
+
+# ------------------------------------------------------------------------------
+security_ssh_package_dependencies:
+  - openssh-server
+
+# ------------------------------------------------------------------------------
+security_ssh_directory: /etc/ssh
+# security_ssh_directory_home: "$HOME/.ssh"
+
+# ------------------------------------------------------------------------------
+security_ssh_short_moduli: 3071
+security_ssh_service_enabled: true # start on boot
+
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
+# template sshd_config.config.j2
+security_ssh_port: 22
+security_ssh_address_family: "inet"
+security_ssh_use_pam: true
+security_ssh_use_dns: false
+security_ssh_accept_env: "LANG LC_*"
+security_ssh_print_motd: false
+# security_ssh_authentication_methods: publickey
+# security_ssh_use_privilege_separation: sandbox
+
+security_ssh_client_alive_count_max: 2
+security_ssh_max_auth_tries: 3
+security_ssh_max_sessions: 2
+security_ssh_tcp_keep_alive: false
+
+security_ssh_host_keys:
+  - /etc/ssh/ssh_host_rsa_key
+  # - /etc/ssh/ssh_host_ecdsa_key
+  - /etc/ssh/ssh_host_ed25519_key
+# NOTE: if ssh_host_keys is set also define to recreate the files to make them more secure
+security_ssh_host_keys_func_rm:
+  path: /etc/ssh
+  name: ssh_host_*
+security_ssh_host_keys_func_gen:
+  - ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ''
+  - ssh-keygen -t rsa -b 4096 -f /etc/ssh/ssh_host_rsa_key -N ''
+
+security_ssh_kex_algorithms:
+  - curve25519-sha256@libssh.org
+  - ecdh-sha2-nistp521
+  - ecdh-sha2-nistp384
+  - ecdh-sha2-nistp256
+  - diffie-hellman-group-exchange-sha256
+security_ssh_macs:
+  # - hmac-sha2-512-etm@openssh.com # NOTE: (CVE-2023-48795)
+  # - hmac-sha2-256-etm@openssh.com # NOTE: (CVE-2023-48795)
+  - hmac-sha2-512
+  - hmac-sha2-256
+  - umac-128@openssh.com
+security_ssh_ciphers:
+  # - chacha20-poly1305@openssh.com # NOTE: (CVE-2023-48795)
+  - aes256-gcm@openssh.com
+  - aes128-gcm@openssh.com
+  - aes256-ctr
+  - aes192-ctr
+  - aes128-ctr
+
+security_ssh_log_level: VERBOSE
+
+# NOTE: possible values: "prohibit-password", "yes", "no"
+# NOTE: this must be string not bool, so you need to quote "yes" and "no"
+security_ssh_permit_root_login: "no"
+
+security_ssh_strict_modes: true
+security_ssh_pubkey_authentication: true
+security_ssh_pubkey_accepted_key_types:
+  - ssh-ed25519
+security_ssh_password_authentication: false
+security_ssh_permit_empty_password: false
+security_ssh_challenge_response_authentication: false
+security_ssh_gssapi_authentication: false
+security_ssh_gssapi_cleanup_credentials: true
+security_ssh_allow_agent_forwarding: false
+security_ssh_tcp_forwarding: false
+security_ssh_x11_forwarding: false
+
+security_ssh_banner: /etc/issue.net
+
+security_ssh_subsystems:
+  - name: sftp
+    command: /usr/lib/openssh/sftp-server -f AUTHPRIV -l INFO
+
+# ------------------------------------------------------------------------------
+# template config.config.j2 (installed per user in ~/.ssh)
+security_ssh_hash_known_hosts: true
+security_ssh_host_key_algorithms:
+  - ssh-ed25519-cert-v01@openssh.com
+  - ssh-rsa-cert-v01@openssh.com
+  - ssh-ed25519
+  - ssh-rsa
+  - ecdsa-sha2-nistp521-cert-v01@openssh.com
+  - ecdsa-sha2-nistp384-cert-v01@openssh.com
+  - ecdsa-sha2-nistp256-cert-v01@openssh.com
+  - ecdsa-sha2-nistp521
+  - ecdsa-sha2-nistp384
+  - ecdsa-sha2-nistp256
+
+security_ssh_user_kex_algorithms: "{{ security_ssh_kex_algorithms }}"
+security_ssh_user_macs: "{{ security_ssh_macs }}"
+security_ssh_user_ciphers: "{{ security_ssh_ciphers }}"

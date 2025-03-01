@@ -39,3 +39,16 @@
   tags:
     - security
     - snmp
+
+# ------------------------------------------------------------------------------
+- name: "SSH | restart and enable ssh"
+  become: true
+  ansible.builtin.systemd_service:
+    name: ssh
+    state: restarted
+    enabled: "{{ security_ssh_service_enabled }}"
+    masked: "{{ not security_ssh_service_enabled }}"
+  listen: "Restart and enable ssh"
+  tags:
+    - security
+    - ssh

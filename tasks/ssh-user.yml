@@ -1,0 +1,33 @@
+---
+# tasks file for ./roles/security
+
+# ------------------------------------------------------------------------------
+- name: "SSH | user | ensures ~/.ssh/config dir exists"
+  become: true
+  become_user: "{{ outer_item.name }}"
+  ansible.builtin.file:
+    path: "~/.ssh"
+    state: directory
+    owner: "{{ outer_item.name }}"
+    group: "{{ outer_item.name }}"
+    mode: "0700"
+  notify: Restart and enable ssh
+  tags:
+    - security
+    - ssh
+    - ssh-user
+
+- name: "SSH | user | copy ssh config template for user"
+  become: true
+  become_user: "{{ outer_item.name }}"
+  ansible.builtin.template:
+    src: ssh/config.config.j2
+    dest: "~/.ssh/config"
+    owner: "{{ outer_item.name }}"
+    group: "{{ outer_item.name }}"
+    mode: "0600"
+  notify: Restart and enable ssh
+  tags:
+    - security
+    - ssh
+    - ssh-user

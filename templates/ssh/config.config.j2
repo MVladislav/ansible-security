@@ -1,0 +1,49 @@
+# {{ ansible_managed }}
+
+# RSA keys are favored over ECDSA keys when backward compatibility ''is required'',
+# thus, newly generated keys are always either ED25519 or RSA (NOT ECDSA or DSA).
+# ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_comment_$(date +%Y_%m_%d)     -C "$(hostname)-$(date +%Y-%m-%d)-comment"
+
+# ED25519 keys are favored over RSA keys when backward compatibility ''is not required''.
+# This is only compatible with OpenSSH 6.5+ and fixed-size (256 bytes).
+# ssh-keygen -t ed25519     -f ~/.ssh/id_ed25519_comment_$(date +%Y_%m_%d) -C "$(hostname)-$(date +%Y-%m-%d)-comment"
+# ssh-keygen -t ed25519-sk  -f ~/.ssh/id_ed25519_comment_$(date +%Y_%m_%d) -C "$(hostname)-$(date +%Y-%m-%d)-comment"
+
+# ------------------------------------------------------------------------------
+# Ensure KnownHosts are unreadable if leaked - it is otherwise easier to know which hosts your keys have access to.
+{% if security_ssh_host_key_algorithms is defined %}
+HashKnownHosts {{ security_ssh_hash_known_hosts | ternary('yes', 'no') }}
+{% else %}
+#HashKnownHosts no
+{% endif %}
+
+# Host keys the client accepts - order here is honored by OpenSSH
+{% if security_ssh_host_key_algorithms is defined %}
+HostKeyAlgorithms {{ security_ssh_host_key_algorithms | join(',') }}
+{% endif %}
+
+{% if security_ssh_user_kex_algorithms is defined %}
+KexAlgorithms {{ security_ssh_user_kex_algorithms | join(',') }}
+{% endif %}
+{% if security_ssh_user_macs is defined %}
+MACs {{ security_ssh_user_macs | join(',') }}
+{% endif %}
+{% if security_ssh_user_ciphers is defined %}
+Ciphers {{ security_ssh_user_ciphers | join(',') }}
+{% endif %}
+
+# ------------------------------------------------------------------------------
+
+Host *
+  User root
+  Port 22
+  LogLevel INFO
+  Compression yes
+  SendEnv LANG LC_*
+  HashKnownHosts yes
+  GSSAPIAuthentication yes
+  IdentitiesOnly yes
+  AddressFamily inet
+  Protocol 2
+  ServerAliveInterval 60
+  #DynamicForward <PORT>

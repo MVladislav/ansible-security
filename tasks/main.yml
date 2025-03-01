@@ -35,3 +35,30 @@
   tags:
     - security
     - snmp
+
+# SSH
+- name: "SECURITY | config ssh - global"
+  ansible.builtin.include_tasks: ssh.yml
+  when:
+    - security_setup_services is defined
+    - security_setup_services.ssh is defined
+    - security_setup_services.ssh | bool
+    - security_ssh_only_client_setup is not defined or not security_ssh_only_client_setup | bool
+  tags:
+    - security
+    - ssh
+
+# SSH per user
+- name: "SECURITY | config ssh - per user"
+  ansible.builtin.include_tasks: ssh-user.yml
+  loop: "{{ clients | flatten(levels=1) }}"
+  loop_control:
+    loop_var: outer_item
+  when:
+    - security_setup_services is defined
+    - security_setup_services.ssh is defined
+    - security_setup_services.ssh | bool
+  tags:
+    - security
+    - ssh
+    - ssh-user

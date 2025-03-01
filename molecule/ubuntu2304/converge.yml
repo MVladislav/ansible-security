@@ -11,6 +11,7 @@
       auditd: false
       fail2ban: true
       snmp: true
+      ssh: true
 
     security_fail2ban_proxmox: false
 
