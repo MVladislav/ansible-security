@@ -13,7 +13,7 @@
 
 - name: "FAIL2BAN | override jail.local configurations"
   ansible.builtin.template:
-    src: jail.local.j2
+    src: fail2ban/jail.local.j2
     dest: /etc/fail2ban/jail.local
     backup: true
     owner: root
@@ -26,7 +26,7 @@
 
 - name: "FAIL2BAN | add proxmox filder config"
   ansible.builtin.template:
-    src: proxmox.conf.j2
+    src: fail2ban/proxmox.conf.j2
     dest: /etc/fail2ban/filder.d/proxmox.conf
     backup: true
     owner: root

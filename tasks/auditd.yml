@@ -44,7 +44,7 @@
 
 - name: "AUDITD | config main rule (audit.rules)"
   ansible.builtin.template:
-    src: audit.rules.j2
+    src: auditd/audit.rules.j2
     dest: "{{ security_auditd_config_directory }}/rules.d/audit.rules"
     mode: "0600"
   notify: Restart and enable auditd
@@ -56,7 +56,7 @@
 
 - name: "AUDITD | config cron rule (audit.cron)"
   ansible.builtin.template:
-    src: auditd.cron.j2
+    src: auditd/auditd.cron.j2
     dest: "/etc/cron.hourly/auditd"
     mode: "0755"
   notify: Restart and enable auditd
