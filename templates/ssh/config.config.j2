@@ -1,13 +1,20 @@
 # {{ ansible_managed }}
 
-# RSA keys are favored over ECDSA keys when backward compatibility ''is required'',
-# thus, newly generated keys are always either ED25519 or RSA (NOT ECDSA or DSA).
-# ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_comment_$(date +%Y_%m_%d)     -C "$(hostname)-$(date +%Y-%m-%d)-comment"
-
-# ED25519 keys are favored over RSA keys when backward compatibility ''is not required''.
-# This is only compatible with OpenSSH 6.5+ and fixed-size (256 bytes).
-# ssh-keygen -t ed25519     -f ~/.ssh/id_ed25519_comment_$(date +%Y_%m_%d) -C "$(hostname)-$(date +%Y-%m-%d)-comment"
-# ssh-keygen -t ed25519-sk  -f ~/.ssh/id_ed25519_comment_$(date +%Y_%m_%d) -C "$(hostname)-$(date +%Y-%m-%d)-comment"
+# EXAMPLE: Generate an RSA key (4096 bits)
+# ssh-keygen -t rsa -b 4096 -o -f ~/.ssh/id_rsa_<type>_<purpose>_$(date +%Y_%m_%d) -C "<type>_<purpose>_$(date +%Y_%m_%d)"
+#
+# EXAMPLE: Generate an ED25519 key (modern & fast)
+# ssh-keygen -t ed25519 -o -f ~/.ssh/id_ed25519_<type>_<purpose>_$(date +%Y_%m_%d) -C "<type>_<purpose>_$(date +%Y_%m_%d)"
+#
+# EXAMPLE: Generate an ED25519-SK key (hardware-backed, e.g., YubiKey)
+# ssh-keygen -t ed25519-sk -o -f ~/.ssh/id_ed25519_sk_<type>_<purpose>_$(date +%Y_%m_%d) -C "<type>_<purpose>_$(date +%Y_%m_%d)"
+#
+# EXAMPLE: Generate an ECDSA key (P-384 curve)
+# ssh-keygen -t ecdsa -b 384 -o -f ~/.ssh/id_ecdsa_p384_<type>_<purpose>_$(date +%Y_%m_%d) -C "<type>_<purpose>_$(date +%Y_%m_%d)"
+#
+# PLACEHOLDER INFO:
+#   - <type>   : e.g., infra, service, server
+#   - <purpose>: e.g., nas, hetzner, test
 
 # ------------------------------------------------------------------------------
 # Ensure KnownHosts are unreadable if leaked - it is otherwise easier to know which hosts your keys have access to.
