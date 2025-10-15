@@ -103,7 +103,7 @@
   changed_when: security_is_ssh_recreated.rc not in [0,1]
   failed_when: security_is_ssh_recreated.rc not in [0,1]
   notify: Restart and enable ssh
-  loop: "{{ ssh_host_keys_func_gen | flatten(levels=1) }}"
+  loop: "{{ security_ssh_host_keys_func_gen | flatten(levels=1) }}"
   when:
     - security_ssh_host_files_to_delete is defined
     - security_ssh_host_files_to_delete.files is defined
