@@ -54,6 +54,8 @@ Developed and testes with Ansible 2.14.4
 - hosts: servers
   roles:
     - role: security
+      ansible_user: <TODO-USERNAME>
+
       security_setup_services:
         auditd: true
         fail2ban: true
