@@ -97,6 +97,7 @@ security_auditd_conf_variables:
 # FAIL2BAN
 # ------------------------------------------------------------------------------
 # template jail.local.j2
+security_jail_ignore_lan: false
 security_jail_bantime: 3600
 security_jail_banaction: ufw # ufw | iptables-allports | iptables-multiport
 security_jail_enabled: true

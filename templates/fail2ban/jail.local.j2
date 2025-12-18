@@ -1,9 +1,7 @@
 [DEFAULT]
 # Prevents banning Local (LAN subnets)
-ignoreip = 127.0.0.1/8 ::1
-#           10.0.0.0/8
-#           192.168.0.0/16
-#           172.16.0.0/12
+ignoreip = 127.0.0.1/8 ::1{% if security_jail_ignore_lan %} 10.0.0.0/8 192.168.0.0/16 172.16.0.0/12{% endif %}
+
 
 banaction = {{ security_jail_banaction }}
 
@@ -17,22 +15,24 @@ maxretry = {{ security_jail_maxretry }}
 findtime = {{ security_jail_findtime }}
 
 allowipv6 = auto
+#usedns = no
 
 ##### SSHD: START ######
 [sshd]
 enabled = {{ security_jail_enabled }}
+#usedns = no
 ##### SSHD: END ######
 
 {% if security_fail2ban_proxmox == true %}
 ##### PROXMOX2: START ######
 [proxmox2]
 enabled = {{ security_fail2ban_proxmox }}
-port    = https,http,8006
-filter  = proxmox2
-logpath  = /var/log/daemon.log
+port = https,http,8006
+filter = proxmox2
+logpath = /var/log/daemon.log
 
 # Apply the jail to the proxmox2 service:
-action = iptables-multiport[name=proxmox2, port="8006, 8009", protocol=%(protocol)s, allowipv6=%(allowipv6)s]
+action = iptables-multiport[name=proxmox2, port="8006,8009", protocol=%(protocol)s, allowipv6=%(allowipv6)s]
 
 ##### PROXMOX2: END ######
 {% endif %}
