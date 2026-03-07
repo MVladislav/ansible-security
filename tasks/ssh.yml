@@ -5,7 +5,7 @@
 - name: "SSH | global | apt | install apt dependencies"
   become: true
   ansible.builtin.apt:
-    pkg: "{{ item }}"
+    name: "{{ item }}"
     state: present
     force_apt_get: true # apt-get instead of aptitude
     update_cache: true

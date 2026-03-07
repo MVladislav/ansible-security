@@ -10,7 +10,10 @@
 # ssh-keygen -t ed25519-sk -o -f ~/.ssh/id_ed25519_sk_<type>_<purpose>_$(date +%Y_%m_%d) -C "<type>_<purpose>_$(date +%Y_%m_%d)"
 #
 # EXAMPLE: Generate an ECDSA key (P-384 curve)
-# ssh-keygen -t ecdsa -b 384 -o -f ~/.ssh/id_ecdsa_p384_<type>_<purpose>_$(date +%Y_%m_%d) -C "<type>_<purpose>_$(date +%Y_%m_%d)"
+# ssh-keygen -t ecdsa -b 384 -o -f ~/.ssh/id_ecdsa_p384_<type>_<purpose>_$(date +%Y_%m_%d) -C "<type>_<purpose>_$(date +%Y_%m_%d)"#
+#
+# EXAMPLE: Generate an ECDSA-SK key (P-384 curve :: hardware-backed, e.g., YubiKey)
+# ssh-keygen -t ecdsa-sk -b 384 -o -f ~/.ssh/id_ecdsa_sk_p384_<type>_<purpose>_$(date +%Y_%m_%d) -C "<type>_<purpose>_$(date +%Y_%m_%d)"
 #
 # PLACEHOLDER INFO:
 #   - <type>   : e.g., infra, service, server
@@ -41,7 +44,25 @@ Ciphers {{ security_ssh_user_ciphers | join(',') }}
 
 # ------------------------------------------------------------------------------
 
+# # PUB GIT{LAB,HUB} -------------------------------------------------------------
+# Host gitlab.com
+#   HostName gitlab.com
+#   User git
+#   Port 22
+#   IdentityFile ~/.ssh/id_ed25519_gitlab
+#   Preferredauthentications publickey
+#
+# Host github.com
+#   HostName github.com
+#   User git
+#   Port 22
+#   IdentityFile ~/.ssh/id_ed25519_github
+#   Preferredauthentications publickey
+
+# ------------------------------------------------------------------------------
+
 Host *
+  #SetEnv TERM=xterm-256color
   User root
   Port 22
   LogLevel INFO
@@ -51,6 +72,7 @@ Host *
   GSSAPIAuthentication yes
   IdentitiesOnly yes
   AddressFamily inet
+  #Preferredauthentications keyboard-interactive,password,publickey,hostbased,gssapi-with-mic
   Protocol 2
   ServerAliveInterval 60
   #DynamicForward <PORT>
