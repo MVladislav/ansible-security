@@ -28,6 +28,19 @@
     - fail2ban
 
 # ------------------------------------------------------------------------------
+- name: "USBGUARD | restart and enable usbguard"
+  become: true
+  ansible.builtin.systemd_service:
+    name: usbguard
+    state: restarted
+    enabled: true
+    masked: false
+  listen: "Restart and enable usbguard"
+  tags:
+    - security
+    - usbguard
+
+# ------------------------------------------------------------------------------
 - name: "SNMP | restart and enable snmp"
   become: true
   ansible.builtin.systemd_service:

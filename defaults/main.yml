@@ -4,6 +4,7 @@
 security_setup_services:
   auditd: true
   fail2ban: true
+  usbguard: false
   snmp: false
   ssh: false
 
@@ -106,6 +107,22 @@ security_jail_findtime: 300
 security_jail_backend: systemd # auto | systemd
 
 security_fail2ban_proxmox: false
+
+# ------------------------------------------------------------------------------
+# USBGUARD
+# ------------------------------------------------------------------------------
+security_usbguard_daemon_conf:
+  - key: ImplicitPolicyTarget
+    value: block
+
+  - key: PresentDevicePolicy
+    value: apply-policy
+  - key: PresentControllerPolicy
+    value: apply-policy
+
+security_usbguard_rules_conf: []
+  # - "allow with-interface equals { 03:01:00 }"  # HID Boot Keyboard
+  # - "allow with-interface equals { 03:01:01 }"  # HID Boot Mouse
 
 # ------------------------------------------------------------------------------
 # SNMP

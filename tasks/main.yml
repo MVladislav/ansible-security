@@ -25,6 +25,18 @@
     - security
     - fail2ban
 
+# USBGUARD
+- name: "SECURITY | usbguard"
+  become: true
+  ansible.builtin.import_tasks: usbguard.yml
+  when:
+    - security_setup_services is defined
+    - security_setup_services.usbguard is defined
+    - security_setup_services.usbguard | bool
+  tags:
+    - security
+    - usbguard
+
 # SNMP
 - name: "SECURITY | snmp"
   ansible.builtin.import_tasks: snmp.yml

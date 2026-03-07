@@ -1,0 +1,59 @@
+---
+# tasks file for ./roles/security
+
+- name: "USBGUARD | install dependencies"
+  ansible.builtin.apt:
+    name: usbguard
+    state: present
+    force_apt_get: true # apt-get instead of aptitude
+    update_cache: true
+  tags:
+    - security
+    - usbguard
+
+# ------------------------------------------------------------------------------
+
+- name: "USBGUARD | configure USBGuard daemon conf"
+  ansible.builtin.lineinfile:
+    dest: /etc/usbguard/usbguard-daemon.conf
+    regexp: '^(#(\s)*)?{{ item.key }}\s*=\s*{{ item.value }}\s*$'
+    line: "{{ item.key }}={{ item.value }}"
+    state: present
+    create: true
+    owner: root
+    group: root
+    mode: "0600"
+  loop: "{{ security_usbguard_daemon_conf | flatten(levels=1) }}"
+  notify: Restart and enable usbguard
+  tags:
+    - security
+    - usbguard
+
+# ------------------------------------------------------------------------------
+
+- name: "USBGUARD | Generate initial USBGuard policy (blocks new devices, allows current)"
+  ansible.builtin.shell: >
+    usbguard generate-policy > /etc/usbguard/rules.conf
+  args:
+    executable: /bin/bash
+    creates: /etc/usbguard/rules.conf
+  notify: Restart and enable usbguard
+  tags:
+    - security
+    - usbguard
+
+- name: "USBGUARD | add HID rules to policy rules.conf"
+  ansible.builtin.lineinfile:
+    dest: /etc/usbguard/rules.conf
+    line: "{{ item }}"
+    insertafter: EOF
+    state: present
+    create: true
+    owner: root
+    group: root
+    mode: "0600"
+  loop: "{{ security_usbguard_rules_conf | flatten(levels=1) }}"
+  notify: Restart and enable usbguard
+  tags:
+    - security
+    - usbguard
