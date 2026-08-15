@@ -1,39 +1,32 @@
 # Description
 
-Please include a summary of the changes and the related issue. Please also include relevant motivation and context. List any dependencies that are required for this change.
+Please include a summary of the changes and the issue they address, plus the
+motivation and any dependencies required for the change.
 
 Fixes # (issue)
 
 ## Type of change
 
-Please delete options that are not relevant.
+- [ ] Bug fix (non-breaking change that fixes an issue)
+- [ ] New feature (non-breaking change that adds functionality)
+- [ ] Breaking change (fix or feature that changes existing behavior)
+- [ ] Documentation update
 
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality to not work as expected)
-- [ ] This change requires a documentation update
+## How has this been tested?
 
-# How Has This Been Tested?
+Please describe the tests you ran and how to reproduce them (molecule
+scenarios, ad-hoc playbook, `--check` run).
 
-Please describe the tests that you ran to verify your changes. Provide instructions so we can reproduce. Please also list any relevant details for your test configuration
+- [ ] `molecule test -s ubuntu2404`
+- [ ] `molecule test -s ubuntu2604`
+- [ ] `pre-commit run --all-files`
 
-- [ ] Test A
-- [ ] Test B
+## Checklist:
 
-**Test Configuration**:
-
-- Firmware version:
-- Hardware:
-- Toolchain:
-- SDK:
-
-# Checklist:
-
-- [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my code
-- [ ] I have commented my code, particularly in hard-to-understand areas
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new warnings
-- [ ] I have added tests that prove my fix is effective or that my feature works
-- [ ] New and existing unit tests pass locally with my changes
-- [ ] Any dependent changes have been merged and published in downstream modules
+- [ ] My changes follow the project conventions (see `CONTRIBUTING.md`)
+- [ ] All variables are prefixed with `security_` (legacy `clients` list excepted)
+- [ ] Tasks are tagged with `security` and the service name
+- [ ] `ansible-lint` and `yamllint` report no errors
+- [ ] Molecule `verify.yml` assertions pass for the affected scenario(s)
+- [ ] Documentation (README, templates) is updated where needed
+- [ ] Commit messages follow [conventional commits](https://www.conventionalcommits.org/)
