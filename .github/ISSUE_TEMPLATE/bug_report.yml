@@ -1,90 +1,62 @@
-name: Report an issue
-description: Report an issue.
+---
+name: Report a bug
+description: Report a problem with the ansible-security role.
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        This issue form is for reporting bugs only!
+        Thanks for taking the time to fill out this bug report!
 
-        If you have a feature or enhancement request, please use the feature request issue template
+        For feature requests and general questions, please use
+        [Discussions](https://github.com/MVladislav/ansible-security/discussions)
+        instead.
   - type: textarea
+    id: description
     validations:
       required: true
     attributes:
       label: Describe the problem
-      description: >-
-        Describe the issue you are experiencing here to communicate to the
-        maintainers. Tell us what you were trying to do and what happened.
-
-        Provide a clear and concise description of what the problem is.
+      description: >
+        A clear and concise description of what the problem is. What were you
+        trying to do, and what happened instead?
   - type: textarea
+    id: expected
     validations:
       required: true
     attributes:
       label: Expected behavior
-      description: >-
-        A clear and concise description of what you expected to happen.
-  - type: markdown
-    attributes:
-      value: |
-        ## Environment
-  - type: input
-    id: version
+      description: A clear and concise description of what you expected to happen.
+  - type: textarea
+    id: reproduction
     validations:
       required: true
     attributes:
-      label: What is version of application which has the issue?
-      placeholder: core-
+      label: Steps to reproduce
       description: >
-        Can be found in ...
-  - type: input
-    attributes:
-      label: What was the last working version of the application?
-      placeholder: core-
-      description: >
-        If known, otherwise leave blank.
-  - type: dropdown
+        Describe how to reproduce the issue: the playbook and variables used,
+        the `security_setup_services` combination, and the exact error output.
+      render: text
+  - type: textarea
+    id: environment
     validations:
       required: true
     attributes:
-      label: What type of installation are you running?
+      label: Environment
       description: >
-        If you don't know, you can find it in: Configuration panel -> Info.
-      options:
-        - OS (setup.py)
-        - Container (docker)
-  - type: dropdown
-    validations:
-      required: true
+        Role version (commit or tag), Ansible version (`ansible --version`),
+        and the Ubuntu version of the target host.
+      render: text
+  - type: textarea
+    id: logs
     attributes:
-      label: What type of device you use to interact with the application?
+      label: Relevant log output
       description: >
-        The device where you open the application and the problem pops up.
-      options:
-        - "OS: [e.g. linux, windows, ios]"
-        - "Browser: [e.g. firefox, chrome, safari]"
-        - "Smartphone: [e.g. android, ios]"
-
-  - type: markdown
-    attributes:
-      value: |
-        # Details
+        Paste any relevant log output or error messages. Please redact
+        sensitive information such as SNMP credentials.
+      render: shell
   - type: textarea
+    id: additional
     attributes:
-      label: Example JSON snippet
-      description: |
-        If this issue has an example piece of JSON that can help reproducing this problem, please provide.
-        This can be an piece of JSON from, e.g., a response from the API.
-      render: json
-  - type: textarea
-    attributes:
-      label: Anything in the logs that might be useful for us?
-      description: For example, error message, or stack traces.
-      render: txt
-  - type: textarea
-    attributes:
-      label: Additional information
-      description: >
-        If you have any additional information for us, use the field below.
-        Please note, you can attach screenshots or screen recordings here, by
-        dragging and dropping files in the field below.
+      label: Additional context
+      description: Any other context or screenshots that might help.
