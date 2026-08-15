@@ -15,9 +15,8 @@ You can checkout [MVladislav - ansible-env-setup - playbooks](https://github.com
 
 Tested with:
 
-- Ubuntu 23.04
 - Ubuntu 24.04
-- Ubuntu 25.04
+- Ubuntu 26.04
 
 ## Role Variables
 
@@ -46,7 +45,7 @@ security_snmp_port_ipv4: 161
 
 ## Dependencies
 
-Developed and testes with Ansible 2.14.4
+Developed and tested with Ansible 2.16 or newer (`systemd_service` requires ansible-core >= 2.16).
 
 ## Example Playbook
 
