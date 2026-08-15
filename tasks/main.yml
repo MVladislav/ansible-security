@@ -66,6 +66,8 @@
   loop: "{{ clients | flatten(levels=1) }}"
   loop_control:
     loop_var: outer_item
+  vars:
+    security_ssh_client: "{{ outer_item.name | default(outer_item) }}"
   when:
     - security_setup_services is defined
     - security_setup_services.ssh is defined

@@ -460,4 +460,6 @@
 
 # Make The Configuration Immutable --------------------------------------------
 
+{% if security_auditd_immutable | bool %}
 -e 2
+{% endif %}

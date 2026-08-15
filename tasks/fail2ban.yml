@@ -27,7 +27,7 @@
 - name: "FAIL2BAN | add proxmox folder configuration"
   ansible.builtin.template:
     src: fail2ban/proxmox.conf.j2
-    dest: /etc/fail2ban/filder.d/proxmox.conf
+    dest: /etc/fail2ban/filter.d/proxmox2.conf
     backup: true
     owner: root
     group: root

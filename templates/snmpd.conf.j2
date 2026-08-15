@@ -3,7 +3,7 @@
 createUser {{ security_snmp.snmp_user }} SHA {{ security_snmp.snmp_password }} AES {{ security_snmp.snmp_encryption }}
 
 rouser {{ security_snmp.snmp_user }} authpriv
-{% if security_snmp_ipv4_enabled %}
+{% if security_snmp_ipv4_enabled | bool %}
 {% if security_snmp_ipv4_with_address %}
 agentAddress {{ security_snmp.snmp_agent_address.ipv4_a }}
 {% else %}
@@ -11,7 +11,7 @@ agentAddress {{ security_snmp.snmp_agent_address.ipv4 }}
 {% endif %}
 {% endif %}
 
-{% if security_snmp_ipv6_enabled %}
+{% if security_snmp_ipv6_enabled | bool %}
 {% if security_snmp_ipv6_with_address %}
 agentAddress {{ security_snmp.snmp_agent_address.ipv6_a }}
 {% else %}
@@ -23,8 +23,8 @@ master  agentx
 {% if security_snmp.snmp_location is defined and security_snmp.snmp_location | length > 0 %}
 sysLocation {{ security_snmp.snmp_location }}
 {% endif %}
-{% if ansible_fqdn is defined and ansible_fqdn | length > 0 %}
-sysName {{ ansible_fqdn }}
+{% if ansible_facts["fqdn"] is defined and ansible_facts["fqdn"] | length > 0 %}
+sysName {{ ansible_facts["fqdn"] }}
 {% endif %}
 {% if security_snmp.snmp_contact is defined and security_snmp.snmp_contact | length > 0 %}
 sysContact {{ security_snmp.snmp_contact }}
@@ -38,7 +38,7 @@ includeDir /etc/snmp/snmpd.conf.d
 extend {{ item.extend }}
 {% endfor %}
 {% endif %}
-{% if "pve" in ansible_kernel %}
+{% if "pve" in ansible_facts["kernel"] %}
 extend {{ security_snmp.snmp_extension_proxmox.extend }}
 {% endif %}
 
@@ -55,4 +55,6 @@ extend .1.3.6.1.4.1.2021.7890.4 serial   /bin/cat /sys/devices/virtual/dmi/id/pr
 extend uptime /bin/cat /proc/uptime
 
 ## This line enables Observium's ifAlias description injection
+{% if security_snmp.snmp_ifalias_persist | bool %}
 pass_persist .1.3.6.1.2.1.31.1.1.1.18 /usr/local/bin/ifAlias_persist
+{% endif %}

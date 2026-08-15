@@ -1,0 +1,80 @@
+---
+- name: Verify
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: "Collect service facts"
+      ansible.builtin.service_facts:
+
+    - name: "Fail2ban service is running and enabled"
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.services['fail2ban.service'].state == 'running'
+          - ansible_facts.services['fail2ban.service'].status == 'enabled'
+
+    - name: "SSH service is running"
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.services['ssh.service'].state == 'running'
+
+    - name: "SNMPD service is running"
+      ansible.builtin.assert:
+        that:
+          - ansible_facts.services['snmpd.service'].state == 'running'
+
+    - name: "Read generated sshd_config"
+      ansible.builtin.slurp:
+        src: /etc/ssh/sshd_config
+      register: sshd_config
+
+    - name: "SSHD config contains hardened settings"
+      ansible.builtin.set_fact:
+        sshd_config_content: "{{ sshd_config.content | b64decode }}"
+
+    - name: "SSHD config asserts hardened settings and Include ordering"
+      ansible.builtin.assert:
+        that:
+          - "'PasswordAuthentication no' in sshd_config_content"
+          - "'PermitRootLogin no' in sshd_config_content"
+          - "'AuthenticationMethods publickey' in sshd_config_content"
+          - "'Include /etc/ssh/sshd_config.d/*.conf' in sshd_config_content"
+          - sshd_config_content.index('Include /etc/ssh/sshd_config.d/*.conf') > sshd_config_content.index('PermitRootLogin no')
+
+    - name: "SNMPD.conf is present with mode 0600"
+      ansible.builtin.stat:
+        path: /etc/snmp/snmpd.conf
+      register: snmpd_conf
+    - name: "SNMPD.conf asserts"
+      ansible.builtin.assert:
+        that:
+          - snmpd_conf.stat.exists
+          - snmpd_conf.stat.mode == '0600'
+
+    - name: "Read generated snmpd.conf"
+      ansible.builtin.slurp:
+        src: /etc/snmp/snmpd.conf
+      register: snmpd_conf_content
+
+    - name: "SNMPD.conf binds to the configured address"
+      ansible.builtin.assert:
+        that:
+          - "'agentAddress udp:161' in (snmpd_conf_content.content | b64decode)"
+
+    - name: "Per-user SSH client config exists"
+      ansible.builtin.stat:
+        path: /home/ubuntu/.ssh/config
+      register: ssh_client_config
+    - name: "Per-user SSH client config asserts"
+      ansible.builtin.assert:
+        that:
+          - ssh_client_config.stat.exists
+          - ssh_client_config.stat.mode == '0600'
+
+    - name: "Fail2ban proxmox filter is installed"
+      ansible.builtin.stat:
+        path: /etc/fail2ban/filter.d/proxmox2.conf
+      register: proxmox_filter
+    - name: "Fail2ban proxmox filter asserts"
+      ansible.builtin.assert:
+        that:
+          - proxmox_filter.stat.exists

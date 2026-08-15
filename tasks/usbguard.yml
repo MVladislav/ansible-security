@@ -16,7 +16,7 @@
 - name: "USBGUARD | configure USBGuard daemon conf"
   ansible.builtin.lineinfile:
     dest: /etc/usbguard/usbguard-daemon.conf
-    regexp: '^(#(\s)*)?{{ item.key }}\s*=\s*{{ item.value }}\s*$'
+    regexp: '^(#(\s)*)?{{ item.key }}\s*=.*$'
     line: "{{ item.key }}={{ item.value }}"
     state: present
     create: true

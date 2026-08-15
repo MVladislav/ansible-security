@@ -21,7 +21,7 @@
 
 # ------------------------------------------------------------------------------
 # Ensure KnownHosts are unreadable if leaked - it is otherwise easier to know which hosts your keys have access to.
-{% if security_ssh_host_key_algorithms is defined %}
+{% if security_ssh_hash_known_hosts is defined %}
 HashKnownHosts {{ security_ssh_hash_known_hosts | ternary('yes', 'no') }}
 {% else %}
 #HashKnownHosts no
@@ -63,8 +63,10 @@ Ciphers {{ security_ssh_user_ciphers | join(',') }}
 
 Host *
   #SetEnv TERM=xterm-256color
-  User root
-  Port 22
+{% if security_ssh_client_user is defined and security_ssh_client_user | length > 0 %}
+  User {{ security_ssh_client_user }}
+{% endif %}
+  Port {{ security_ssh_port | default(22) }}
   LogLevel INFO
   Compression yes
   SendEnv LANG LC_*

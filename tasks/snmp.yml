@@ -17,6 +17,17 @@
     - snmp
 
 # ------------------------------------------------------------------------------
+- name: "SNMP | assert required credentials are set"
+  ansible.builtin.fail:
+    msg: "security_snmp_password and security_snmp_encryption must be set when the snmp service is enabled"
+  when:
+    - security_snmp.snmp_password is not defined or security_snmp.snmp_password == omit
+    - security_snmp.snmp_encryption is not defined or security_snmp.snmp_encryption == omit
+  tags:
+    - security
+    - snmp
+
+# ------------------------------------------------------------------------------
 - name: "SNMP | create snmp extension directory"
   become: true
   ansible.builtin.file:
@@ -65,7 +76,7 @@
     serole: object_r
     setype: lib_t
     selevel: s0
-  when: '"pve" in ansible_kernel'
+  when: '"pve" in ansible_facts["kernel"]'
   tags:
     - security
     - snmp
@@ -90,26 +101,6 @@
 #     - snmp
 
 # ------------------------------------------------------------------------------
-- name: "SNMP | check create snmp config"
-  become: true
-  ansible.builtin.template:
-    src: "snmpd.conf.j2"
-    dest: "{{ security_snmp.snmp_config }}"
-    owner: root
-    group: root
-    mode: "0600"
-    seuser: system_u
-    serole: object_r
-    setype: etc_t
-    selevel: s0
-  register: check_snmp
-  check_mode: true
-  notify: Restart and enable snmp
-  tags:
-    - security
-    - snmp
-
-# ------------------------------------------------------------------------------
 - name: "SNMP | create snmp config"
   become: true
   ansible.builtin.template:
@@ -122,9 +113,7 @@
     serole: object_r
     setype: etc_t
     selevel: s0
-  when:
-    - check_snmp is defined
-    - check_snmp.changed | bool
+  no_log: true
   notify: Restart and enable snmp
   tags:
     - security

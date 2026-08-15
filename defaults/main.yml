@@ -16,6 +16,9 @@ clients:
 # AUDITD
 # ------------------------------------------------------------------------------
 security_auditd_add_custom_cron_compressor: false
+# NOTE: -e 2 makes the rules immutable; rule changes then only apply after a
+# reboot. Set to false to allow live reloads via the handler.
+security_auditd_immutable: true
 security_auditd_dependencies:
   - auditd
   - audispd-plugins
@@ -139,8 +142,8 @@ security_snmp_agent_address_address:
   ipv6: "{{ security_snmp_address_ipv6 | default(ansible_default_ipv6.address) }}"
 # security_snmp_port_ipv4: 161
 # security_snmp_port_ipv6: 161
-security_snmp_ipv4_enabled: "{{ true if security_snmp_port_ipv4 is defined else false }}"
-security_snmp_ipv6_enabled: "{{ true if security_snmp_port_ipv6 is defined else false }}"
+security_snmp_ipv4_enabled: "{{ security_snmp_port_ipv4 is defined }}"
+security_snmp_ipv6_enabled: "{{ security_snmp_port_ipv6 is defined }}"
 security_snmp_ipv4_with_address: false
 security_snmp_ipv6_with_address: false
 security_snmp_extension_scripts: "/usr/local/lib/snmpd"
@@ -179,6 +182,10 @@ security_snmp:
     url: "https://raw.githubusercontent.com/librenms/librenms-agent/master/agent-local/proxmox"
     extend: "proxmox /usr/bin/sudo {{ security_snmp_extension_scripts }}/proxmox"
 
+  # pass_persist plugin for Observium's ifAlias injection (script is not
+  # installed by this role, disabled by default)
+  snmp_ifalias_persist: false
+
 # ------------------------------------------------------------------------------
 # SSH
 # ------------------------------------------------------------------------------
@@ -201,12 +208,14 @@ security_ssh_service_enabled: true # start on boot
 # ------------------------------------------------------------------------------
 # template sshd_config.config.j2
 security_ssh_port: 22
-security_ssh_address_family: "inet"
+security_ssh_address_family: "any" # any (the default) | inet (use IPv4 only) | inet6 (use IPv6 only)
 security_ssh_use_pam: true
 security_ssh_use_dns: false
 security_ssh_accept_env: "LANG LC_*"
 security_ssh_print_motd: false
-# security_ssh_authentication_methods: publickey
+# NOTE: if security_ssh_password_authentication is true, also allow passwords here,
+# e.g. security_ssh_authentication_methods: "password,publickey"
+security_ssh_authentication_methods: publickey
 # security_ssh_use_privilege_separation: sandbox
 
 security_ssh_client_alive_count_max: 2
@@ -218,7 +227,8 @@ security_ssh_host_keys:
   - /etc/ssh/ssh_host_rsa_key
   # - /etc/ssh/ssh_host_ecdsa_key
   - /etc/ssh/ssh_host_ed25519_key
-# NOTE: if ssh_host_keys is set also define to recreate the files to make them more secure
+# NOTE: recreate the host key files (removes existing, generates new ones).
+security_ssh_recreate_host_keys: true
 security_ssh_host_keys_func_rm:
   path: /etc/ssh
   name: ssh_host_*
@@ -254,6 +264,7 @@ security_ssh_permit_root_login: "no"
 
 security_ssh_strict_modes: true
 security_ssh_pubkey_authentication: true
+# maps to the (modern) PubkeyAcceptedAlgorithms sshd keyword
 security_ssh_pubkey_accepted_key_types:
   - ssh-ed25519
 security_ssh_password_authentication: false
@@ -289,3 +300,6 @@ security_ssh_host_key_algorithms:
 security_ssh_user_kex_algorithms: "{{ security_ssh_kex_algorithms }}"
 security_ssh_user_macs: "{{ security_ssh_macs }}"
 security_ssh_user_ciphers: "{{ security_ssh_ciphers }}"
+
+# default user used in the per-user ~/.ssh/config "Host *" block
+security_ssh_client_user: "{{ ansible_user | default('') }}"

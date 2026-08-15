@@ -4,14 +4,13 @@
 # ------------------------------------------------------------------------------
 - name: "SSH | user | ensures ~/.ssh/config dir exists"
   become: true
-  become_user: "{{ outer_item.name }}"
+  become_user: "{{ security_ssh_client }}"
   ansible.builtin.file:
     path: "~/.ssh"
     state: directory
-    owner: "{{ outer_item.name }}"
-    group: "{{ outer_item.name }}"
+    owner: "{{ security_ssh_client }}"
+    group: "{{ security_ssh_client }}"
     mode: "0700"
-  notify: Restart and enable ssh
   tags:
     - security
     - ssh
@@ -19,14 +18,13 @@
 
 - name: "SSH | user | copy ssh config template for user"
   become: true
-  become_user: "{{ outer_item.name }}"
+  become_user: "{{ security_ssh_client }}"
   ansible.builtin.template:
     src: ssh/config.config.j2
     dest: "~/.ssh/config"
-    owner: "{{ outer_item.name }}"
-    group: "{{ outer_item.name }}"
+    owner: "{{ security_ssh_client }}"
+    group: "{{ security_ssh_client }}"
     mode: "0600"
-  notify: Restart and enable ssh
   tags:
     - security
     - ssh
