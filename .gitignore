@@ -10,11 +10,13 @@
 !.gitignore
 !.gitempty
 
+!AGENTS.md
 !CONTRIBUTING.md
 !LICENCE
 !SECURITY.md
 
 !README.md
+!.editorconfig
 
 !.pre-commit-config.yaml
 !.prettierrc.yml
@@ -40,8 +42,7 @@
 !templates/
 !templates/**
 !tests/
-tests/*
-!tests/inventory
+!tests/**
 !vars/
 !vars/**
 
