@@ -42,9 +42,9 @@
     - security
     - usbguard
 
-- name: "USBGUARD | add HID rules to policy rules.conf"
+- name: "USBGUARD | add HID rules to policy 99-hid-rules.conf"
   ansible.builtin.lineinfile:
-    dest: /etc/usbguard/rules.conf
+    dest: /etc/usbguard/rules.d/99-hid-rules.conf
     line: "{{ item }}"
     insertafter: EOF
     state: present

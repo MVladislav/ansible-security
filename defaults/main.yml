@@ -126,6 +126,9 @@ security_usbguard_daemon_conf:
 security_usbguard_rules_conf: []
   # - "allow with-interface equals { 03:01:00 }"  # HID Boot Keyboard
   # - "allow with-interface equals { 03:01:01 }"  # HID Boot Mouse
+  # - "allow with-interface one-of { 03:*:* }"  # HID any Human USB Interface Devices
+  # - "allow with-interface one-of { 08:*:* }"  # USB Mass Storage
+  # - "allow with-interface one-of { 09:*:* }"  # USB Host-Controller/Root-Hub Devices
 
 # ------------------------------------------------------------------------------
 # SNMP

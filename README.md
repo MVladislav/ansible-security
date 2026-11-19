@@ -24,8 +24,9 @@ Tested with:
 security_setup_services:
   auditd: true
   fail2ban: true
+  usbguard: false
   snmp: false
-  ssh: true
+  ssh: false
 
 clients:
   - name: "{{ ansible_user }}"
