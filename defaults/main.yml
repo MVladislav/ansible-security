@@ -192,117 +192,189 @@ security_snmp:
 # ------------------------------------------------------------------------------
 # SSH
 # ------------------------------------------------------------------------------
+
+# General ----------------------------------------------------------------------
 security_ssh_only_client_setup: false
 
-# ------------------------------------------------------------------------------
 security_ssh_package_dependencies:
   - openssh-server
 
-# ------------------------------------------------------------------------------
 security_ssh_directory: /etc/ssh
-# security_ssh_directory_home: "$HOME/.ssh"
+security_ssh_service_enabled: true
 
-# ------------------------------------------------------------------------------
+# Minimum accepted Diffie-Hellman moduli size (bits).
 security_ssh_short_moduli: 3071
-security_ssh_service_enabled: true # start on boot
 
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
-# ------------------------------------------------------------------------------
-# template sshd_config.config.j2
+# Network ----------------------------------------------------------------------
 security_ssh_port: 22
-security_ssh_address_family: "any" # any (the default) | inet (use IPv4 only) | inet6 (use IPv6 only)
-security_ssh_use_pam: true
-security_ssh_use_dns: false
-security_ssh_accept_env: "LANG LC_*"
-security_ssh_print_motd: false
-# NOTE: if security_ssh_password_authentication is true, also allow passwords here,
-# e.g. security_ssh_authentication_methods: "password,publickey"
-security_ssh_authentication_methods: publickey
-# security_ssh_use_privilege_separation: sandbox
+# any | inet | inet6
+security_ssh_address_family: any
 
-security_ssh_client_alive_count_max: 2
-security_ssh_max_auth_tries: 3
-security_ssh_max_sessions: 2
-security_ssh_tcp_keep_alive: false
-
+# Host keys --------------------------------------------------------------------
 security_ssh_host_keys:
-  - /etc/ssh/ssh_host_rsa_key
-  # - /etc/ssh/ssh_host_ecdsa_key
   - /etc/ssh/ssh_host_ed25519_key
-# NOTE: recreate the host key files (removes existing, generates new ones).
+  # - /etc/ssh/ssh_host_ecdsa_key
+  - /etc/ssh/ssh_host_rsa_key
+
+# Recreate host keys and remove all existing ssh_host_* files.
 security_ssh_recreate_host_keys: true
 security_ssh_host_keys_func_rm:
-  path: /etc/ssh
-  name: ssh_host_*
+  path: "{{ security_ssh_directory }}"
+  name: "^ssh_host_.*$"
 security_ssh_host_keys_func_gen:
-  - ssh-keygen -t ed25519 -f /etc/ssh/ssh_host_ed25519_key -N ''
-  - ssh-keygen -t rsa -b 4096 -f /etc/ssh/ssh_host_rsa_key -N ''
+  - type: ed25519
+    path: "{{ security_ssh_directory }}/ssh_host_ed25519_key"
+  - type: rsa
+    bits: 4096
+    path: "{{ security_ssh_directory }}/ssh_host_rsa_key"
 
-security_ssh_kex_algorithms:
-  - curve25519-sha256@libssh.org
-  - ecdh-sha2-nistp521
-  - ecdh-sha2-nistp384
-  - ecdh-sha2-nistp256
-  - diffie-hellman-group-exchange-sha256
-security_ssh_macs:
-  # - hmac-sha2-512-etm@openssh.com # NOTE: (CVE-2023-48795)
-  # - hmac-sha2-256-etm@openssh.com # NOTE: (CVE-2023-48795)
-  - hmac-sha2-512
-  - hmac-sha2-256
-  - umac-128@openssh.com
+# Cryptography -----------------------------------------------------------------
 security_ssh_ciphers:
-  # - chacha20-poly1305@openssh.com # NOTE: (CVE-2023-48795)
+  - chacha20-poly1305@openssh.com
   - aes256-gcm@openssh.com
   - aes128-gcm@openssh.com
   - aes256-ctr
   - aes192-ctr
   - aes128-ctr
-
-security_ssh_log_level: VERBOSE
-
-# NOTE: possible values: "prohibit-password", "yes", "no"
-# NOTE: this must be string not bool, so you need to quote "yes" and "no"
-security_ssh_permit_root_login: "no"
-
-security_ssh_strict_modes: true
-security_ssh_pubkey_authentication: true
-# maps to the (modern) PubkeyAcceptedAlgorithms sshd keyword
-security_ssh_pubkey_accepted_key_types:
-  - ssh-ed25519
-security_ssh_password_authentication: false
-security_ssh_permit_empty_password: false
-security_ssh_challenge_response_authentication: false
-security_ssh_gssapi_authentication: false
-security_ssh_gssapi_cleanup_credentials: true
-security_ssh_allow_agent_forwarding: false
-security_ssh_tcp_forwarding: false
-security_ssh_x11_forwarding: false
-
-security_ssh_banner: /etc/issue.net
-
-security_ssh_subsystems:
-  - name: sftp
-    command: /usr/lib/openssh/sftp-server -f AUTHPRIV -l INFO
-
-# ------------------------------------------------------------------------------
-# template config.config.j2 (installed per user in ~/.ssh)
-security_ssh_hash_known_hosts: true
+security_ssh_kex_algorithms:
+  - mlkem768x25519-sha256
+  - sntrup761x25519-sha512
+  - sntrup761x25519-sha512@openssh.com
+  - curve25519-sha256@libssh.org
+  - diffie-hellman-group18-sha512
+security_ssh_macs:
+  - hmac-sha2-512-etm@openssh.com
+  - hmac-sha2-256-etm@openssh.com
+  - hmac-sha2-512
+  - hmac-sha2-256
+  # - umac-128-etm@openssh.com
 security_ssh_host_key_algorithms:
   - ssh-ed25519-cert-v01@openssh.com
-  - ssh-rsa-cert-v01@openssh.com
+  - rsa-sha2-512-cert-v01@openssh.com
+  - rsa-sha2-256-cert-v01@openssh.com
   - ssh-ed25519
-  - ssh-rsa
-  - ecdsa-sha2-nistp521-cert-v01@openssh.com
-  - ecdsa-sha2-nistp384-cert-v01@openssh.com
-  - ecdsa-sha2-nistp256-cert-v01@openssh.com
-  - ecdsa-sha2-nistp521
-  - ecdsa-sha2-nistp384
-  - ecdsa-sha2-nistp256
+  - rsa-sha2-512
+  - rsa-sha2-256
+security_ssh_pubkey_accepted_algorithms:
+  - ssh-ed25519-cert-v01@openssh.com
+  - ssh-ed25519
+
+# Only relevant when using SSH certificates.
+# Empty means OpenSSH's supported defaults.
+security_ssh_ca_signature_algorithms: []
+
+security_ssh_rekey_limit: "default none"
+security_ssh_required_rsa_size: 3072
+
+# Authentication ---------------------------------------------------------------
+security_ssh_login_grace_time: 30s
+# yes | no | prohibit-password
+security_ssh_permit_root_login: "no"
+security_ssh_strict_modes: true
+security_ssh_max_auth_tries: 3
+security_ssh_max_sessions: 10
+security_ssh_max_startups: "10:30:60"
+security_ssh_pubkey_authentication: true
+# publickey | any | custom AuthenticationMethods expression
+security_ssh_authentication_methods: publickey
+security_ssh_authorized_keys_file: .ssh/authorized_keys
+security_ssh_password_authentication: false
+security_ssh_kbd_interactive_authentication: false
+security_ssh_permit_empty_password: false
+security_ssh_permit_user_environment: false
+security_ssh_permit_user_rc: false
+
+# PAM --------------------------------------------------------------------------
+security_ssh_use_pam: true
+
+# Host-based authentication ----------------------------------------------------
+# HostbasedAuthentication and IgnoreRhosts are intentionally fixed to no/yes.
+
+# Kerberos / GSSAPI ------------------------------------------------------------
+security_ssh_gssapi_authentication: false
+security_ssh_gssapi_cleanup_credentials: true
+
+# Forwarding and tunnelling ----------------------------------------------------
+security_ssh_disable_forwarding: true
+security_ssh_allow_agent_forwarding: false
+security_ssh_tcp_forwarding: false
+security_ssh_stream_local_forwarding: false
+security_ssh_x11_forwarding: false
+
+# Session ----------------------------------------------------------------------
+security_ssh_permit_tty: true
+security_ssh_print_motd: false
+security_ssh_tcp_keep_alive: true
+security_ssh_client_alive_interval: 300
+security_ssh_client_alive_count_max: 2
+security_ssh_use_dns: false
+
+# Logging ----------------------------------------------------------------------
+security_ssh_log_level: VERBOSE
+security_ssh_syslog_facility: AUTHPRIV
+
+# Environment ------------------------------------------------------------------
+security_ssh_accept_env: "LANG LC_*"
+
+# Banner -----------------------------------------------------------------------
+security_ssh_banner: /etc/issue.net
+
+# SFTP -------------------------------------------------------------------------
+security_ssh_subsystems:
+  - name: sftp
+    command: internal-sftp -f AUTHPRIV -l INFO
+  # - name: sftp
+  #   command: /usr/lib/openssh/sftp-server -f AUTHPRIV -l INFO
+
+# User restrictions ------------------------------------------------------------
+# Empty means no additional AllowUsers / AllowGroups restriction.
+security_ssh_allow_users: []
+security_ssh_allow_groups: []
+
+# Per-user configuration -------------------------------------------------------
+security_ssh_users: []
+
+# SSH CLIENT -------------------------------------------------------------------
+security_ssh_user_client_user: "{{ ansible_user | default('') }}"
+security_ssh_user_hash_known_hosts: true
+
+security_ssh_user_port: "{{ security_ssh_port }}"
+security_ssh_user_address_family: any
+
+security_ssh_user_host_key_algorithms: "{{ security_ssh_host_key_algorithms }}"
+# security_ssh_user_host_key_algorithms:
+#   - ssh-ed25519-cert-v01@openssh.com
+#   - ecdsa-sha2-nistp521-cert-v01@openssh.com
+#   - ecdsa-sha2-nistp384-cert-v01@openssh.com
+#   - ecdsa-sha2-nistp256-cert-v01@openssh.com
+#   - rsa-sha2-512-cert-v01@openssh.com
+#   - rsa-sha2-256-cert-v01@openssh.com
+#   - ssh-ed25519
+#   - ecdsa-sha2-nistp521
+#   - ecdsa-sha2-nistp384
+#   - ecdsa-sha2-nistp256
+#   - rsa-sha2-512
+#   - rsa-sha2-256
 
 security_ssh_user_kex_algorithms: "{{ security_ssh_kex_algorithms }}"
-security_ssh_user_macs: "{{ security_ssh_macs }}"
-security_ssh_user_ciphers: "{{ security_ssh_ciphers }}"
+# security_ssh_user_kex_algorithms:
+#   - curve25519-sha256
+#   - ecdh-sha2-nistp521
+#   - ecdh-sha2-nistp384
+#   - ecdh-sha2-nistp256
+#   - diffie-hellman-group-exchange-sha256
 
-# default user used in the per-user ~/.ssh/config "Host *" block
-security_ssh_client_user: "{{ ansible_user | default('') }}"
+security_ssh_user_macs: "{{ security_ssh_macs }}"
+# security_ssh_user_macs:
+#   - hmac-sha2-512-etm@openssh.com
+#   - hmac-sha2-256-etm@openssh.com
+#   - umac-128-etm@openssh.com
+
+security_ssh_user_ciphers: "{{ security_ssh_ciphers }}"
+# security_ssh_user_ciphers:
+#   - chacha20-poly1305@openssh.com
+#   - aes256-gcm@openssh.com
+#   - aes128-gcm@openssh.com
+#   - aes256-ctr
+#   - aes192-ctr
+#   - aes128-ctr

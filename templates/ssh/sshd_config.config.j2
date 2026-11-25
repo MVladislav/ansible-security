@@ -1,14 +1,11 @@
 # {{ ansible_managed }}
+#
+# OpenSSH server hardening configuration.
+# Global configuration must remain before Match blocks.
 
-# This is the sshd server system-wide configuration file.  See
-# sshd_config(5) for more information.
-
-# This sshd was compiled with PATH=/usr/bin:/bin:/usr/sbin:/sbin
-
-# The strategy used for options in the default sshd_config shipped with
-# OpenSSH is to specify options with their default value where
-# possible, but leave them commented.  Uncommented options override the
-# default value.
+############################
+# Network
+############################
 
 Port {{ security_ssh_port | default(22) }}
 AddressFamily {{ security_ssh_address_family | default('any') }}
@@ -17,22 +14,19 @@ ListenAddress 0.0.0.0
 {% elif security_ssh_address_family | default('any') == 'inet6' %}
 ListenAddress ::
 {% endif %}
-#ListenAddress 0.0.0.0
-#ListenAddress ::
 
-# Supported HostKey algorithms by order of preference.
-#HostKey /etc/ssh/ssh_host_ed25519_key
-#HostKey /etc/ssh/ssh_host_ecdsa_key
-#HostKey /etc/ssh/ssh_host_rsa_key
+############################
+# Host keys
+############################
+
 {% for key in security_ssh_host_keys | default([]) %}
 HostKey {{ key }}
 {% endfor %}
-{% if security_ssh_host_key_algorithms | default([]) | length > 0 %}
-HostKeyAlgorithms {{ security_ssh_host_key_algorithms | join(',') }}
-{% endif %}
 
-# Ciphers and keying
-#RekeyLimit default none
+############################
+# Cryptography
+############################
+
 {% if security_ssh_ciphers | default([]) | length > 0 %}
 Ciphers {{ security_ssh_ciphers | join(',') }}
 {% endif %}
@@ -42,136 +36,151 @@ KexAlgorithms {{ security_ssh_kex_algorithms | join(',') }}
 {% if security_ssh_macs | default([]) | length > 0 %}
 MACs {{ security_ssh_macs | join(',') }}
 {% endif %}
-
-# Password based logins are disabled - only public key based logins are allowed.
-AuthenticationMethods {{ security_ssh_authentication_methods | default('publickey') }}
-
-# TODO: extend for 2FA
-#AuthenticationMethods publickey,keyboard-interactive:pam
-#KbdInteractiveAuthentication yes
-# Ensure /bin/login is not used so that it cannot bypass PAM settings for sshd.
-# Note, this option is no longer needed as of OpenSSH 7.4 as support for UseLogin has been removed
-#UseLogin no
-
-# Logging
-#SyslogFacility AUTH
-# LogLevel VERBOSE logs user's key fingerprint on login. Needed to have a clear audit track of which key was using to log in.
-LogLevel {{ security_ssh_log_level | default('VERBOSE') }}
-
-# Authentication
-#LoginGraceTime 2m
-PermitRootLogin {{ security_ssh_permit_root_login | default('no') }}
-StrictModes {{ security_ssh_strict_modes | default(true) | ternary('yes', 'no') }}
-MaxAuthTries {{ security_ssh_max_auth_tries | default(4) }}
-MaxSessions {{ security_ssh_max_sessions | default(10) }}
-
-PubkeyAuthentication {{ security_ssh_pubkey_authentication | default(true) | ternary('yes', 'no') }}
-{% if security_ssh_pubkey_accepted_key_types | default([]) | length > 0 %}
-PubkeyAcceptedAlgorithms {{ security_ssh_pubkey_accepted_key_types | join(',') }}
+{% if security_ssh_host_key_algorithms | default([]) | length > 0 %}
+HostKeyAlgorithms {{ security_ssh_host_key_algorithms | join(',') }}
+{% endif %}
+{% if security_ssh_pubkey_accepted_algorithms | default([]) | length > 0 %}
+PubkeyAcceptedAlgorithms {{ security_ssh_pubkey_accepted_algorithms | join(',') }}
+{% endif %}
+{% if security_ssh_ca_signature_algorithms | default([]) | length > 0 %}
+CASignatureAlgorithms {{ security_ssh_ca_signature_algorithms | join(',') }}
 {% endif %}
 
-AuthorizedKeysFile	.ssh/authorized_keys
+RekeyLimit {{ security_ssh_rekey_limit | default('default none') }}
+RequiredRSASize {{ security_ssh_required_rsa_size | default(3072) }}
 
-#AuthorizedPrincipalsFile none
-#AuthorizedKeysCommand none
-#AuthorizedKeysCommandUser nobody
+############################
+# Authentication
+############################
 
-# For this work you will also need host keys in /etc/ssh/ssh_known_hosts
+LoginGraceTime {{ security_ssh_login_grace_time | default('30s') }}
+PermitRootLogin {{ security_ssh_permit_root_login | default('no') }}
+StrictModes {{ security_ssh_strict_modes | default(true) | ternary('yes', 'no') }}
+MaxAuthTries {{ security_ssh_max_auth_tries | default(3) }}
+MaxSessions {{ security_ssh_max_sessions | default(10) }}
+MaxStartups {{ security_ssh_max_startups | default('10:30:60') }}
+
+PubkeyAuthentication {{ security_ssh_pubkey_authentication | default(true) | ternary('yes', 'no') }}
+# TODO: extend for 2FA - AuthenticationMethods publickey,keyboard-interactive:pam
+AuthenticationMethods {{ security_ssh_authentication_methods | default('publickey') }}
+AuthorizedKeysFile {{ security_ssh_authorized_keys_file | default('.ssh/authorized_keys') }}
+
+PasswordAuthentication {{ security_ssh_password_authentication | default(false) | ternary('yes', 'no') }}
+KbdInteractiveAuthentication {{ security_ssh_kbd_interactive_authentication | default(false) | ternary('yes', 'no') }}
+PermitEmptyPasswords {{ security_ssh_permit_empty_password | default(false) | ternary('yes', 'no') }}
+PermitUserEnvironment {{ security_ssh_permit_user_environment | default(false) | ternary('yes', 'no') }}
+PermitUserRC {{ security_ssh_permit_user_rc | default(false) | ternary('yes', 'no') }}
+
+############################
+# PAM
+############################
+
+# PAM account and session processing remains enabled.
+# Password and keyboard-interactive authentication are independently controlled above.
+UsePAM {{ security_ssh_use_pam | default(true) | ternary('yes', 'no') }}
+
+############################
+# Host-based authentication
+############################
+
 HostbasedAuthentication no
-# Change to yes if you don't trust ~/.ssh/known_hosts for
-#IgnoreUserKnownHosts no
-# Don't read the user's ~/.rhosts and ~/.shosts files
 IgnoreRhosts yes
 
-# To disable tunneled clear text passwords, change to no here!
-PasswordAuthentication {{ security_ssh_password_authentication | default(false) | ternary('yes', 'no') }}
-PermitEmptyPasswords {{ security_ssh_permit_empty_password | default(false) | ternary('yes', 'no') }}
+############################
+# Kerberos / GSSAPI
+############################
 
-# Change to yes to enable challenge-response passwords (beware issues with
-# some PAM modules and threads)
-ChallengeResponseAuthentication {{ security_ssh_challenge_response_authentication | default(false) | ternary('yes', 'no') }}
-
-# Kerberos options
-#KerberosAuthentication no
-#KerberosOrLocalPasswd yes
-#KerberosTicketCleanup yes
-#KerberosGetAFSToken no
-
-# GSSAPI options
 GSSAPIAuthentication {{ security_ssh_gssapi_authentication | default(false) | ternary('yes', 'no') }}
 GSSAPICleanupCredentials {{ security_ssh_gssapi_cleanup_credentials | default(true) | ternary('yes', 'no') }}
-#GSSAPIStrictAcceptorCheck yes
-#GSSAPIKeyExchange no
 
-# Set this to 'yes' to enable PAM authentication, account processing,
-# and session processing. If this is enabled, PAM authentication will
-# be allowed through the ChallengeResponseAuthentication and
-# PasswordAuthentication.  Depending on your PAM configuration,
-# PAM authentication via ChallengeResponseAuthentication may bypass
-# the setting of "PermitRootLogin without-password".
-# If you just want the PAM account and session checks to run without
-# PAM authentication, then enable this but set PasswordAuthentication
-# and ChallengeResponseAuthentication to 'no'.
-UsePAM {{ security_ssh_use_pam | default(true) | ternary('yes', 'no') }}
+############################
+# Forwarding and tunnelling
+############################
+
+DisableForwarding {{ security_ssh_disable_forwarding | default(true) | ternary('yes', 'no') }}
 
 AllowAgentForwarding {{ security_ssh_allow_agent_forwarding | default(false) | ternary('yes', 'no') }}
 AllowTcpForwarding {{ security_ssh_tcp_forwarding | default(false) | ternary('yes', 'no') }}
-#GatewayPorts no
+AllowStreamLocalForwarding {{ security_ssh_stream_local_forwarding | default(false) | ternary('yes', 'no') }}
+
+GatewayPorts no
+PermitTunnel no
 X11Forwarding {{ security_ssh_x11_forwarding | default(false) | ternary('yes', 'no') }}
-#X11DisplayOffset 10
-#X11UseLocalhost yes
-#PermitTTY yes
+
+############################
+# Session
+############################
+
+PermitTTY {{ security_ssh_permit_tty | default(true) | ternary('yes', 'no') }}
 PrintMotd {{ security_ssh_print_motd | default(false) | ternary('yes', 'no') }}
-#PrintLastLog yes
-TCPKeepAlive {{ security_ssh_tcp_keep_alive | default(false) | ternary('yes', 'no') }}
-#PermitUserEnvironment no
-#Compression delayed
-#ClientAliveInterval 0
-ClientAliveCountMax {{ security_ssh_client_alive_count_max | default(3) }}
+PrintLastLog yes
+
+TCPKeepAlive {{ security_ssh_tcp_keep_alive | default(true) | ternary('yes', 'no') }}
+ClientAliveInterval {{ security_ssh_client_alive_interval | default(300) }}
+ClientAliveCountMax {{ security_ssh_client_alive_count_max | default(2) }}
+
 UseDNS {{ security_ssh_use_dns | default(false) | ternary('yes', 'no') }}
-#PidFile /var/run/sshd.pid
-#MaxStartups 10:30:100
-#PermitTunnel no
-#ChrootDirectory none
-#VersionAddendum none
+Compression no
 
-{% if security_ssh_banner is defined %}
-Banner {{ security_ssh_banner }}
-{% else %}
-#Banner none
-{% endif %}
+############################
+# Logging
+############################
 
-# Allow client to pass locale environment variables
+SyslogFacility {{ security_ssh_syslog_facility | default('AUTHPRIV') }}
+LogLevel {{ security_ssh_log_level | default('VERBOSE') }}
+
+############################
+# Environment
+############################
+
 AcceptEnv {{ security_ssh_accept_env | default('LANG LC_*') }}
 
-# Log sftp level file access (read/write/etc.) that would not be easily logged otherwise.
-{% for subsystem in security_ssh_subsystems | default([{'name': 'sftp', 'command': '/usr/lib/openssh/sftp-server -f AUTHPRIV -l INFO'}]) %}
-Subsystem	{{ subsystem.name }}	{{ subsystem.command }}
+############################
+# Banner
+############################
+
+{% if security_ssh_banner | default('') | length > 0 %}
+Banner {{ security_ssh_banner }}
+{% else %}
+Banner none
+{% endif %}
+
+############################
+# SFTP
+############################
+
+{% for subsystem in security_ssh_subsystems | default([{'name': 'sftp', 'command': 'internal-sftp -f AUTHPRIV -l INFO'}]) %}
+Subsystem {{ subsystem.name }} {{ subsystem.command }}
 {% endfor %}
 
-{% if security_ssh_users | default([]) | length > 0 %}
-{% for user in security_ssh_users %}
+############################
+# User restrictions
+############################
+
+{% if security_ssh_allow_users | default([]) | length > 0 %}
+AllowUsers {{ security_ssh_allow_users | join(' ') }}
+{% endif %}
+
+{% if security_ssh_allow_groups | default([]) | length > 0 %}
+AllowGroups {{ security_ssh_allow_groups | join(' ') }}
+{% endif %}
+
+############################
+# Per-user configuration
+############################
+
+{% for user in security_ssh_users | default([]) %}
 Match User {{ user.name }}
 {% if user.settings is defined %}
 {% for key, value in user.settings.items() %}
-        {{ key }} {{ value }}
+    {{ key }} {{ value }}
 {% endfor %}
 {% endif %}
 {% if user.authorized_keys is defined %}
-        AuthorizedKeysFile /etc/ssh/authorized_keys/{{ user.name }}
+    AuthorizedKeysFile /etc/ssh/authorized_keys/{{ user.name }}
 {% endif %}
-{% if not loop.last %}
 
-{% endif %}
 {% endfor %}
-{% else %}
-# Example of overriding settings on a per-user basis
-#Match User anoncvs
-#X11Forwarding no
-#AllowTcpForwarding no
-#PermitTTY no
-#ForceCommand cvs server
-{% endif %}
 
 # Include drop-in configuration last so that the hardened settings above win
 # over files in sshd_config.d (e.g. cloud-init's 50-cloud-init.conf).

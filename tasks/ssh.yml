@@ -2,55 +2,73 @@
 # tasks file for ./roles/security
 
 # ------------------------------------------------------------------------------
-- name: "SSH | global | apt | install apt dependencies"
+- name: "SSH | global | apt | install dependencies"
   become: true
   ansible.builtin.apt:
-    name: "{{ item }}"
+    name: "{{ security_ssh_package_dependencies }}"
     state: present
     force_apt_get: true # apt-get instead of aptitude
     update_cache: true
-  loop: "{{ security_ssh_package_dependencies | flatten(levels=1) }}"
+    cache_valid_time: 3600
   when:
-    - security_ssh_package_dependencies is defined
+    - security_ssh_package_dependencies | length > 0
   tags:
     - security
     - ssh
 
 # ------------------------------------------------------------------------------
-- name: "SSH | global | command | check ssh has short moduli (moduli >= x, allowed)"
+- name: "SSH | global | command | check short DH moduli"
   become: true
-  ansible.builtin.command: "awk '$5 < {{ security_ssh_short_moduli }} { exit 1 }' /etc/ssh/moduli"
+  ansible.builtin.command:
+    argv:
+      - awk
+      - -v
+      - "min={{ security_ssh_short_moduli }}"
+      - "$5 < min { found=1 } END { exit(found ? 0 : 1) }"
+      - "{{ security_ssh_directory }}/moduli"
   register: security_ssh_short_moduli_check
-  changed_when: security_ssh_short_moduli_check.rc == 1
+  changed_when: false
   failed_when: security_ssh_short_moduli_check.rc not in [0, 1]
   tags:
     - security
     - ssh
 
-- name: "SSH | global | command | deactivate ssh short moduli (moduli >= x, allowed)"
+- name: "SSH | global | command | remove short DH moduli"
   become: true
-  ansible.builtin.shell: >
-    awk '$5 >= {{ security_ssh_short_moduli }}' /etc/ssh/moduli >
-    /etc/ssh/moduli.tmp &&
-    mv /etc/ssh/moduli.tmp /etc/ssh/moduli
+  ansible.builtin.shell: |
+    set -euo pipefail
+
+    moduli="{{ security_ssh_directory }}/moduli"
+    tmp="$(mktemp "${moduli}.XXXXXX")"
+
+    trap 'rm -f "$tmp"' EXIT
+
+    awk -v min="{{ security_ssh_short_moduli }}" '$5 >= min' "$moduli" > "$tmp"
+
+    chown --reference="$moduli" "$tmp"
+    chmod --reference="$moduli" "$tmp"
+
+    mv "$tmp" "$moduli"
+    trap - EXIT
   args:
     executable: /bin/bash
   changed_when: true
   notify: Restart and enable ssh
   when:
     - security_ssh_short_moduli_check is defined
-    - security_ssh_short_moduli_check.rc == 1
+    - security_ssh_short_moduli_check.rc == 0
   tags:
     - security
     - ssh
 
 # ------------------------------------------------------------------------------
-- name: "SSH | global | command | recreate ssh_host_* files - find for removed existing"
+- name: "SSH | global | command | recreate ssh_host_* files - find existing"
   become: true
   ansible.builtin.find:
     paths: "{{ security_ssh_host_keys_func_rm.path }}"
     patterns: "{{ security_ssh_host_keys_func_rm.name }}"
     use_regex: true
+    file_type: file
   register: security_ssh_host_files_to_delete
   when:
     - security_ssh_recreate_host_keys | bool
@@ -66,7 +84,8 @@
   ansible.builtin.file:
     path: "{{ item.path }}"
     state: absent
-  loop: "{{ security_ssh_host_files_to_delete.files | flatten(levels=1) }}"
+  loop: "{{ security_ssh_host_files_to_delete.files | default([]) }}"
+  notify: Restart and enable ssh
   when:
     - security_ssh_recreate_host_keys | bool
     - security_ssh_host_files_to_delete is defined
@@ -77,14 +96,15 @@
     - security
     - ssh
 
-- name: "SSH | global | command | recreate ssh_host_* files - regenerate new"
+- name: "SSH | global | command | recreate ssh_host_* files - generate selected"
   become: true
-  ansible.builtin.command: "{{ item }}"
-  register: security_is_ssh_recreated
-  changed_when: "security_is_ssh_recreated.rc == 0"
-  failed_when: "security_is_ssh_recreated.rc not in [0, 1]"
+  ansible.builtin.command:
+    argv: "{{ ['ssh-keygen', '-t', item.type] + (['-b', item.bits | string] if item.bits is defined else []) + ['-f', item.path, '-N', ''] }}"
+  changed_when: true
   notify: Restart and enable ssh
-  loop: "{{ security_ssh_host_keys_func_gen | flatten(levels=1) }}"
+  loop: "{{ security_ssh_host_keys_func_gen }}"
+  loop_control:
+    label: "{{ item.path }}"
   when:
     - security_ssh_recreate_host_keys | bool
     - security_ssh_host_files_to_delete is defined
@@ -95,7 +115,7 @@
     - ssh
 
 # ------------------------------------------------------------------------------
-- name: "SSH | global | template | copy sshd_config template"
+- name: "SSH | global | template | configure sshd"
   become: true
   ansible.builtin.template:
     src: ssh/sshd_config.config.j2
@@ -103,7 +123,8 @@
     backup: true
     owner: root
     group: root
-    mode: "0644"
+    mode: "0600"
+    validate: "/usr/sbin/sshd -t -f %s"
   notify: Restart and enable ssh
   tags:
     - security

@@ -1,4 +1,6 @@
 # {{ ansible_managed }}
+#
+# OpenSSH client configuration.
 
 # EXAMPLE: Generate an RSA key (4096 bits)
 # ssh-keygen -t rsa -b 4096 -o -f ~/.ssh/id_rsa_<type>_<purpose>_$(date +%Y_%m_%d) -C "<type>_<purpose>_$(date +%Y_%m_%d)"
@@ -10,7 +12,7 @@
 # ssh-keygen -t ed25519-sk -o -f ~/.ssh/id_ed25519_sk_<type>_<purpose>_$(date +%Y_%m_%d) -C "<type>_<purpose>_$(date +%Y_%m_%d)"
 #
 # EXAMPLE: Generate an ECDSA key (P-384 curve)
-# ssh-keygen -t ecdsa -b 384 -o -f ~/.ssh/id_ecdsa_p384_<type>_<purpose>_$(date +%Y_%m_%d) -C "<type>_<purpose>_$(date +%Y_%m_%d)"#
+# ssh-keygen -t ecdsa -b 384 -o -f ~/.ssh/id_ecdsa_p384_<type>_<purpose>_$(date +%Y_%m_%d) -C "<type>_<purpose>_$(date +%Y_%m_%d)"
 #
 # EXAMPLE: Generate an ECDSA-SK key (P-384 curve :: hardware-backed, e.g., YubiKey)
 # ssh-keygen -t ecdsa-sk -b 384 -o -f ~/.ssh/id_ecdsa_sk_p384_<type>_<purpose>_$(date +%Y_%m_%d) -C "<type>_<purpose>_$(date +%Y_%m_%d)"
@@ -19,62 +21,61 @@
 #   - <type>   : e.g., infra, service, server
 #   - <purpose>: e.g., nas, hetzner, test
 
-# ------------------------------------------------------------------------------
-# Ensure KnownHosts are unreadable if leaked - it is otherwise easier to know which hosts your keys have access to.
-{% if security_ssh_hash_known_hosts is defined %}
-HashKnownHosts {{ security_ssh_hash_known_hosts | ternary('yes', 'no') }}
-{% else %}
-#HashKnownHosts no
-{% endif %}
+################################################################################
+# Host-specific configuration
+################################################################################
 
-# Host keys the client accepts - order here is honored by OpenSSH
-{% if security_ssh_host_key_algorithms is defined %}
-HostKeyAlgorithms {{ security_ssh_host_key_algorithms | join(',') }}
-{% endif %}
-
-{% if security_ssh_user_kex_algorithms is defined %}
-KexAlgorithms {{ security_ssh_user_kex_algorithms | join(',') }}
-{% endif %}
-{% if security_ssh_user_macs is defined %}
-MACs {{ security_ssh_user_macs | join(',') }}
-{% endif %}
-{% if security_ssh_user_ciphers is defined %}
-Ciphers {{ security_ssh_user_ciphers | join(',') }}
-{% endif %}
-
-# ------------------------------------------------------------------------------
-
-# # PUB GIT{LAB,HUB} -------------------------------------------------------------
-# Host gitlab.com
-#   HostName gitlab.com
-#   User git
-#   Port 22
-#   IdentityFile ~/.ssh/id_ed25519_gitlab
-#   Preferredauthentications publickey
-#
+# GitHub -----------------------------------------------------------------------
 # Host github.com
-#   HostName github.com
-#   User git
-#   Port 22
-#   IdentityFile ~/.ssh/id_ed25519_github
-#   Preferredauthentications publickey
+#     HostName github.com
+#     User git
+#     Port 22
+#     IdentityFile ~/.ssh/id_ed25519_github
+#     IdentitiesOnly yes
+#     PreferredAuthentications publickey
 
-# ------------------------------------------------------------------------------
+# GitLab -----------------------------------------------------------------------
+# Host gitlab.com
+#     HostName gitlab.com
+#     User git
+#     Port 22
+#     IdentityFile ~/.ssh/id_ed25519_gitlab
+#     IdentitiesOnly yes
+#     PreferredAuthentications publickey
 
+################################################################################
+# Default configuration
+################################################################################
 Host *
-  #SetEnv TERM=xterm-256color
-{% if security_ssh_client_user is defined and security_ssh_client_user | length > 0 %}
-  User {{ security_ssh_client_user }}
+    HashKnownHosts {{ security_ssh_user_hash_known_hosts | default(true) | ternary('yes', 'no') }}
+{% if security_ssh_user_client_user | default('') | length > 0 %}
+    User {{ security_ssh_user_client_user }}
 {% endif %}
-  Port {{ security_ssh_port | default(22) }}
-  LogLevel INFO
-  Compression yes
-  SendEnv LANG LC_*
-  HashKnownHosts yes
-  GSSAPIAuthentication yes
-  IdentitiesOnly yes
-  AddressFamily inet
-  #Preferredauthentications keyboard-interactive,password,publickey,hostbased,gssapi-with-mic
-  Protocol 2
-  ServerAliveInterval 60
-  #DynamicForward <PORT>
+    Port {{ security_ssh_user_port | default(22) }}
+    AddressFamily {{ security_ssh_user_address_family | default('any') }}
+
+{% if security_ssh_user_host_key_algorithms | default([]) | length > 0 %}
+    HostKeyAlgorithms {{ security_ssh_user_host_key_algorithms | join(',') }}
+{% endif %}
+{% if security_ssh_user_kex_algorithms | default([]) | length > 0 %}
+    KexAlgorithms {{ security_ssh_user_kex_algorithms | join(',') }}
+{% endif %}
+{% if security_ssh_user_macs | default([]) | length > 0 %}
+    MACs {{ security_ssh_user_macs | join(',') }}
+{% endif %}
+{% if security_ssh_user_ciphers | default([]) | length > 0 %}
+    Ciphers {{ security_ssh_user_ciphers | join(',') }}
+{% endif %}
+
+    # GSSAPIAuthentication no
+    IdentitiesOnly yes
+    ForwardAgent no
+    ForwardX11 no
+    Compression no
+    ServerAliveInterval 60
+    ServerAliveCountMax 3
+    SendEnv LANG LC_*
+
+    # SetEnv TERM=xterm-256color
+    # PreferredAuthentications keyboard-interactive,password,publickey,hostbased,gssapi-with-mic
+    # DynamicForward <PORT>
