@@ -90,8 +90,10 @@ IgnoreRhosts yes
 # Kerberos / GSSAPI
 ############################
 
+{% if security_ssh_gssapi_authentication | default(false) | bool %}
 GSSAPIAuthentication {{ security_ssh_gssapi_authentication | default(false) | ternary('yes', 'no') }}
 GSSAPICleanupCredentials {{ security_ssh_gssapi_cleanup_credentials | default(true) | ternary('yes', 'no') }}
+{% endif %}
 
 ############################
 # Forwarding and tunnelling

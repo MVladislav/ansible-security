@@ -237,8 +237,8 @@ security_ssh_ciphers:
   - aes192-ctr
   - aes128-ctr
 security_ssh_kex_algorithms:
-  - mlkem768x25519-sha256
-  - sntrup761x25519-sha512
+  # - mlkem768x25519-sha256 # added in OpenSSH 9.9/10.0
+  # - sntrup761x25519-sha512 # added in OpenSSH 9.9/10.0
   - sntrup761x25519-sha512@openssh.com
   - curve25519-sha256@libssh.org
   - diffie-hellman-group18-sha512
