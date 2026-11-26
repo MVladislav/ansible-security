@@ -17,6 +17,19 @@
     - ssh
 
 # ------------------------------------------------------------------------------
+- name: "SSH | global | file | ensure privilege separation directory"
+  become: true
+  ansible.builtin.file:
+    path: "{{ security_ssh_privilege_separation_directory }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  tags:
+    - security
+    - ssh
+
+# ------------------------------------------------------------------------------
 - name: "SSH | global | command | check short DH moduli"
   become: true
   ansible.builtin.command:

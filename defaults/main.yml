@@ -200,6 +200,7 @@ security_ssh_package_dependencies:
   - openssh-server
 
 security_ssh_directory: /etc/ssh
+security_ssh_privilege_separation_directory: /run/sshd
 security_ssh_service_enabled: true
 
 # Minimum accepted Diffie-Hellman moduli size (bits).
